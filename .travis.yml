@@ -1,3 +1,6 @@
+# https://medium.com/collaborne-engineering/how-to-build-polymer-components-with-github-and-travis-67683ef8bf0d
+# https://github.com/Collaborne/d3-progress-meter/blob/master/.travis.yml
+
 dist: trusty
 sudo: false
 group: beta

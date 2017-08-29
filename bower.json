@@ -13,5 +13,8 @@
   "keywords": ["web-components", "polymer", "timer"],
   "resolutions": {
     "polymer": "^2.0.0"
-  }
+  },
+  "licenses": [{
+    "type": "Apache-2.0"
+  }]  
 }
