@@ -1,5 +1,69 @@
 <link rel="import" href="../polymer/polymer-element.html">
 
+<!--
+`<a-timer>` is a countdown timer unusually capable to be driven by properties only.
+
+```html
+<a-timer start-at="30"></a-timer>
+```
+
+'Events' are signaled setting correspondingly property to true. 
+And then to false again after the second passes. 
+
+```html
+<a-timer start-at="30" signalFinish="{{finish}}"></a-timer>
+```
+
+You can observe changes to [[finish]], acting when it is set to true, 
+as you would with an traditionally fired event.
+
+`<a-timer>` may easily be attached to graphic elements.
+
+```html
+<a-timer start-at="30" current-time="{{currentTime}}"></a-timer>
+[[currentTime]]
+```
+
+Start/stop `<a-timer>` by changing ```run``` property to true/false.
+As you would with a traditional method, but using a property instead.
+
+```html
+<a-timer start-at="30" run="[[run]]"></a-timer>
+```
+
+Reset `<a-timer>` by changing ```reset``` property to true.
+As you would with a traditional method, but using a property instead.
+It will be reset at the instant the property changes to true.
+
+```html
+<a-timer start-at="30" reset="[[reset]]"></a-timer>
+```
+
+It may include one more optional alert ```alert-also-at```, 
+correspondingly signaled by ```signal-alert-also-at```.
+
+```html
+<a-timer 
+  start-at="30" 
+  alert-also-at="10" 
+  signal-alert-also-at="{{signalAlertAlsoAt}}" 
+  signalFinish="{{finish}}">
+</a-timer>
+```
+
+It may alert periodically.
+
+```html
+<a-timer start-at="30" alert-tick="2" signal-alert-tick="{{signalAlertTick}}"></a-timer>
+```
+A tick is meant to be higher than 1 second. For 1 second ticks, 
+you can watch changes directly on ```current-time``` property, which updates every second. 
+
+@element a-timer
+@hero hero.svg
+@demo demo/index.html
+-->
+
 <dom-module id="a-timer">
   <template>
     <style>
@@ -23,41 +87,103 @@
       static get is() { return 'a-timer'; }
       static get properties() {
         return {
+          /**
+          * Start time in seconds.
+          */
           startTime: {
             type: Number,
             value: 30,
           },
+
+          /**
+          * The current time in seconds.
+          */
           currentTime: {
             type: Number,
             value: 30,
           },
-          alertAt: {
+
+          /**
+          * An aditional time, in seconds, to alert.
+          */
+          alertAlsoAt: {
             type: Number,
-            value: 10,
+            value: null,
           },
+
+          /**
+          * A period, in seconds, to alert periodically.
+          */
+          alertTick: {
+            type: Number,
+            value: null,
+          },
+
+          /**
+          * A property, instead of a traditional method, to start/stop the timer.
+          */
+          letRun: {
+            type: Boolean,
+            value: false,
+          },
+
+          /**
+          * A property, instead of a traditional event, to signal a periodic 'tick' alert set by ```alertTick```.
+          */
+          signalAlertTick: {
+            type: Boolean,
+            value: false,
+          },
+
+          /**
+          * A property, instead of a traditional event, to signal an additional alert set by ```alertAt```.
+          */
+          signalAlertAlsoAt: {
+            type: Boolean,
+            value: false,
+          },
+
+          /**
+          * A property, instead of a traditional event, to signal finish.
+          */
+          signalFinish: {
+            type: Boolean,
+            value: false,
+          },
+
         };
       }
 
+    /**
+     * Starts the timer.
+     */
+      start() {
+        this.alreadyAlerted = false;
+        if (!this.time) this.time = performance.now();
+        if (!this.running) {
+          this.running = true;
+          requestAnimationFrame(this._step.bind(this));
+        }
+      }
+
+    /**
+     * Stops the timer.
+     */
       stop() {
         this.running = false;
         this.time = null;
       }
 
-      restart() {
+    /**
+     * Resets the timer.
+     */
+      reset() {
         this.set('currentTime', this.startTime);
         this.play();
       }
 
-      play() {
-        this.alreadyAlerted = false;
-        if (!this.time) this.time = performance.now();
-        if (!this.running) {
-          this.running = true;
-          requestAnimationFrame(this.step.bind(this));
-        }
-      }
 
-      step(timestamp) {
+      _step(timestamp) {
         // console.log(this.currentTime)
         if (!this.running) return;
         // this.calculate(timestamp);
@@ -70,7 +196,7 @@
           this.dispatchEvent(new CustomEvent('alert', {detail: this.currentTime}));        
         }        
         // this.print();
-        requestAnimationFrame(this.step.bind(this));
+        requestAnimationFrame(this._step.bind(this));
       }
     
       // calculate(timestamp) {
