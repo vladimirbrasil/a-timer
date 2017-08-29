@@ -122,7 +122,7 @@ you can watch changes directly on `current-time` property, which updates every s
           /**
           * A property, instead of a traditional method, to start/stop the timer.
           */
-          letRun: {
+          run: {
             type: Boolean,
             value: false,
           },
@@ -154,11 +154,22 @@ you can watch changes directly on `current-time` property, which updates every s
         };
       }
 
-    /**
-     * Starts the timer.
-     */
+      static get observers() {
+        return [
+          '_runChanged(run)'
+        ];
+      }
+
+      _runChanged(run) {
+        console.log(run)
+        run ? this.start() : this.stop();
+      }
+
+      /**
+      * Starts the timer.
+      */
       start() {
-        this.alreadyAlerted = false;
+        this._resetAlerts();
         if (!this.time) this.time = performance.now();
         if (!this.running) {
           this.running = true;
@@ -166,34 +177,50 @@ you can watch changes directly on `current-time` property, which updates every s
         }
       }
 
-    /**
-     * Stops the timer.
-     */
+      /**
+      * Stops the timer.
+      */
       stop() {
         this.running = false;
         this.time = null;
       }
 
-    /**
-     * Resets the timer.
-     */
+      /**
+      * Resets the timer.
+      */
       reset() {
+        this._resetAlerts();
         this.set('currentTime', this.startTime);
-        this.play();
       }
 
+      _resetAlerts() {
+        this.alreadyAlerted = false;
+        this.set('signalFinish', false);
+        this.set('signalAlertAlsoAt', false);
+      }
 
       _step(timestamp) {
-        // console.log(this.currentTime)
         if (!this.running) return;
         // this.calculate(timestamp);
         this.time = timestamp;
         this.exactTime = this.startTime - (this.time/1000);
         this.set('currentTime', Math.ceil(this.exactTime));
+        console.log(this.currentTime)
         if (!this.alreadyAlerted && Math.floor(this.exactTime) < this.alertAt) {
           this.alreadyAlerted = true;
           // console.log('alert!');
+          this.set('signalAlertAlsoAt', true);
           this.dispatchEvent(new CustomEvent('alert', {detail: this.currentTime}));        
+        }        
+        if (Math.floor(this.exactTime) <= 0) {
+          this.set('currentTime', 0);
+          this.alreadyAlerted = true;
+          this.set('signalFinish', true);
+          // console.log('alert!');
+          this.dispatchEvent(new CustomEvent('finish'), {detail: this.currentTime});     
+          console.log('oioi')
+          this.set('run', false);
+          // this.stop();
         }        
         // this.print();
         requestAnimationFrame(this._step.bind(this));
