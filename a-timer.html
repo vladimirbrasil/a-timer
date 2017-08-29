@@ -1,0 +1,108 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="a-timer">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div class="time">[[currentTime]]</div>
+  </template>
+
+  <script>
+    /**
+     * `a-timer`
+     * A countdown timer element
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class ATimer extends Polymer.Element {
+      static get is() { return 'a-timer'; }
+      static get properties() {
+        return {
+          startTime: {
+            type: Number,
+            value: 30,
+          },
+          currentTime: {
+            type: Number,
+            value: 30,
+          },
+          alertAt: {
+            type: Number,
+            value: 10,
+          },
+        };
+      }
+
+      stop() {
+        this.running = false;
+        this.time = null;
+      }
+
+      restart() {
+        this.set('currentTime', this.startTime);
+        this.play();
+      }
+
+      play() {
+        this.alreadyAlerted = false;
+        if (!this.time) this.time = performance.now();
+        if (!this.running) {
+          this.running = true;
+          requestAnimationFrame(this.step.bind(this));
+        }
+      }
+
+      step(timestamp) {
+        // console.log(this.currentTime)
+        if (!this.running) return;
+        // this.calculate(timestamp);
+        this.time = timestamp;
+        this.exactTime = this.startTime - (this.time/1000);
+        this.set('currentTime', Math.ceil(this.exactTime));
+        if (!this.alreadyAlerted && Math.floor(this.exactTime) < this.alertAt) {
+          this.alreadyAlerted = true;
+          // console.log('alert!');
+          this.dispatchEvent(new CustomEvent('alert', {detail: this.currentTime}));        
+        }        
+        // this.print();
+        requestAnimationFrame(this.step.bind(this));
+      }
+    
+      // calculate(timestamp) {
+      //   var diff = timestamp - this.time;
+      //   return (diff/1000);
+      //   // Hundredths of a second are 100 ms
+      //   this.times[2] += diff / 10;
+      //   // Seconds are 100 hundredths of a second
+      //   if (this.times[2] >= 100) {
+      //       this.times[1] += 1;
+      //       this.times[2] -= 100;
+      //   }
+      //   // Minutes are 60 seconds
+      //   if (this.times[1] >= 60) {
+      //       this.times[0] += 1;
+      //       this.times[1] -= 60;
+      //   }
+      // }
+      
+      // print() {
+      //     // this.display.innerText = this.format(this.times);
+      // }
+      
+      // format(times) {
+      //           return `\
+      //   ${pad0(times[0], 2)}:\
+      //   ${pad0(times[1], 2)}:\
+      //   ${pad0(Math.floor(times[2]), 2)}`;
+      // }
+
+    }
+
+    window.customElements.define(ATimer.is, ATimer);
+  </script>
+</dom-module>

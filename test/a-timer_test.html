@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>a-timer test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../a-timer.html">
+  </head>
+  <body>
+
+    <test-fixture id="BasicTestFixture">
+      <template>
+        <a-timer></a-timer>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="StartTimePropertyTestFixture">
+      <template>
+        <a-timer start-time="77"></a-timer>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="AlerAtPropertyTestFixture">
+      <template>
+        <a-timer start-time="30" alert-at="28" on-alert="alert"></a-timer>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="StopPropertyTestFixture">
+      <template>
+        <a-timer start-time="2" on-alert="alert" on-finish="finished"></a-timer>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('a-timer', function() {
+
+        test('instantiating the element with default properties works', function() {
+          var element = fixture('BasicTestFixture');
+          assert.equal(element.startTime, 30);
+          var elementShadowRoot = element.shadowRoot;
+          var elementTime = elementShadowRoot.querySelector('.time');
+          assert.equal(elementTime.innerHTML, '30');
+        });
+
+        test('setting start-time on the element works', function() {
+          var element = fixture('StartTimePropertyTestFixture');
+          assert.equal(element.startTime, '77');
+        });
+
+        test('should emit an alert in 2 seconds (check test duration) if alerAt is set at 28 starting at 30', function(done){
+          // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
+          var element = fixture('AlerAtPropertyTestFixture');
+          const alertAt = element.alertAt;
+          const startTime = element.startTime;
+          // assert.equal(element.startTime, '30');
+          // assert.equal(element.alertAt, alertAtTestValue);
+
+          const oneSecondAfterShouldAlert = 1000 + (startTime - alertAt)*1000;
+          this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+
+          element.addEventListener('alert',function(){
+            assert.equal(element.currentTime, alertAt);
+            var elementShadowRoot = element.shadowRoot;
+            var elementTime = elementShadowRoot.querySelector('.time');
+            assert.equal(elementTime.innerHTML, alertAt);
+            // perform any other assertions you want here
+            done();
+          });
+
+          // execute some code which should trigger 'some_event' on element
+          element.play();
+        });
+
+        // test('should stop after 2 seconds (check test duration) if starting at 2', function(done){
+        //   // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
+        //   var element = fixture('StopPropertyTestFixture');
+        //   const startTime = element.startTime;
+        //   // assert.equal(element.startTime, '30');
+        //   // assert.equal(element.stopAt, stopAtTestValue);
+
+        //   const oneSecondAfterShouldAlert = 1000 + (startTime)*1000;
+        //   this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+
+        //   element.addEventListener('finished',function(){
+        //     assert.equal(element.currentTime, 0);
+        //     var elementShadowRoot = element.shadowRoot;
+        //     var elementTime = elementShadowRoot.querySelector('.time');
+        //     assert.equal(elementTime.innerHTML, 0);
+        //     // perform any other assertions you want here
+        //     done();
+        //   });
+
+        //   // execute some code which should trigger 'some_event' on element
+        //   element.play();
+        // });
+        
+        test('should stop after pause event', function(done){
+          // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
+          var element = fixture('StopPropertyTestFixture');
+          const startTime = element.startTime;
+
+          element.play();
+          setTimeout(function () {
+            element.stop();
+            assert.equal(element.currentTime, (startTime - 1));
+            done();
+          }, 1000);
+
+        });
+
+
+      });
+    </script> 
+
+  </body>
+</html>
