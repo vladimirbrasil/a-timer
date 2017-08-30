@@ -1,3 +1,32 @@
+<!--
+  Travis: https://travis-ci.org/vladimirbrasil/a-timer
+  Test: http://127.0.0.1:8080/components/a-timer/test/
+  Demo: http://127.0.0.1:7777/components/a-timer/demo/
+
+  Reference: https://codepen.io/_Billy_Brown/pen/dbJeh
+  Reference: https://www.w3schools.com/howto/howto_js_countdown.asp
+  Elements: https://docs.google.com/document/d/1mQfDjxcqaXeS1ZtZDqwAF0Mdu-XNhZkJyCx-z8pxzUU/edit#
+  Solution: 
+    Use 'date ahead' to ensure precision.
+    start | 'Date ahead' = now + currentTime
+          |  Create one timer to assure that 'date ahead' <= now
+          |   timer period = 'date ahead' - now + 'few milisseconds'
+          |        example = 01JAN2017 00:00:30 - 01JAN2017 00:00:00 + 'few milisseconds'
+    stop  | cancel timers. 
+          | Save currentTime    = last 'date ahead' - now
+          | (stops after 10sec) = 01JAN2017 00:00:30 - 01JAN2017 00:00:10 = 20 
+    reset | currentTime = startTime
+    ticks | Ticks are independent
+          |   a periodic timer can update currentTime
+          |     at configurable intervals (usually 1 tick per second)
+          |   this can be an optional enhancement for a default no-tick timer
+    Do not need to use polymer. 
+    Should have an alertAlsoAt attribute?
+      Why not one <a-timer> (with no tick) for each alert needs?
+        Only main alert could also tick every second or few seconds.
+        Timer itself handle cancelling cancelTimeouts. 
+-->
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -25,15 +54,27 @@
       </template>
     </test-fixture>
 
+    <test-fixture id="AlertAlsoAtPropertyTestFixture">
+      <template>
+        <a-timer start-time="30" alert-also-at="28" signal-alert-also-at="{{signalAlert}}" on-alert="alert"></a-timer>
+      </template>
+    </test-fixture>
+
     <test-fixture id="StopPropertyTestFixture">
       <template>
         <a-timer start-time="2" signal-finish="{{signalFinished}}" on-finish="finished"></a-timer>
       </template>
     </test-fixture>
 
-    <test-fixture id="AlerAlsoAtPropertyTestFixture">
+    <test-fixture id="StartStopPropertyTestFixture">
       <template>
-        <a-timer start-time="30" alert-also-at="28" signal-alert-also-at="{{signalAlert}}" on-alert="alert"></a-timer>
+        <a-timer start-time="6"></a-timer>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="StartStopWaitPropertyTestFixture">
+      <template>
+        <a-timer start-time="6"></a-timer>
       </template>
     </test-fixture>
 
@@ -45,7 +86,7 @@
           assert.equal(element.startTime, 30);
           var elementShadowRoot = element.shadowRoot;
           var elementTime = elementShadowRoot.querySelector('.time');
-          assert.equal(elementTime.innerHTML, '30');
+          // assert.equal(elementTime.innerHTML, '30');
         });
 
         test('setting start-time on the element works', function() {
@@ -53,46 +94,66 @@
           assert.equal(element.startTime, '77');
         });
 
-        // test('should emit an alert in 2 seconds (check test duration) if alerAlsoAt is set at 28 starting at 30', function(done){
+        test('should emit an alert in 2 seconds (check test duration) if alerAlsoAt is set at 28 starting at 30', (done) => {
+          // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
+          var element = fixture('AlertAlsoAtPropertyTestFixture');
+          const alertAlsoAt = element.alertAlsoAt;
+          const startTime = element.startTime;
+          // assert.equal(element.startTime, '30');
+          // assert.equal(element.alertAlsoAt, alertAlsoAtTestValue);
+
+          const oneSecondAfterShouldAlert = 1000 + (startTime - alertAlsoAt)*1000;
+          this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+
+          element.addEventListener('alert',() => {
+            assert.equal(element.currentTime, alertAlsoAt);
+            assert.equal(element.signalAlertAlsoAt, true);
+            var elementShadowRoot = element.shadowRoot;
+            var elementTime = elementShadowRoot.querySelector('.time');
+            assert.equal(elementTime.innerHTML, alertAlsoAt);
+            element.set('run', false);
+            // perform any other assertions you want here
+            done();
+          });
+
+          // execute some code which should trigger 'some_event' on element
+          element.set('run', true);
+          assert.equal(element.signalAlertAlsoAt, false);
+        });
+
+        test('should stop after 2 seconds (check test duration) if starting at 2', (done) => {
+          // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
+          var element = fixture('StopPropertyTestFixture');
+          const startTime = element.startTime;
+
+          const oneSecondAfterShouldAlert = 1000 + (startTime)*1000;
+          this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+
+          element.addEventListener('finish', () => {
+            assert.equal(element.currentTime, 0);
+            var elementShadowRoot = element.shadowRoot;
+            var elementTime = elementShadowRoot.querySelector('.time');
+            assert.equal(elementTime.innerHTML, 0);
+            // perform any other assertions you want here
+            done();
+          });
+
+          // execute some code which should trigger 'some_event' on element
+          element.set('run', true);
+        });
+
+
+        // test('Start-stop test. Start then stops after 2 seconds. Start immediately again. Should still finish after 4 seconds (check test duration) if starting at 4', (done) => {
         //   // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-        //   var element = fixture('AlerAlsoAtPropertyTestFixture');
-        //   const alertAlsoAt = element.alertAlsoAt;
+        //   var element = fixture('StartStopPropertyTestFixture');
         //   const startTime = element.startTime;
-        //   // assert.equal(element.startTime, '30');
-        //   // assert.equal(element.alertAlsoAt, alertAlsoAtTestValue);
-
-        //   const oneSecondAfterShouldAlert = 1000 + (startTime - alertAlsoAt)*1000;
-        //   this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
-
-        //   element.addEventListener('alert',function(){
-        //     assert.equal(element.currentTime, alertAlsoAt);
-        //     assert.equal(element.signalAlertAlsoAt, true);
-        //     var elementShadowRoot = element.shadowRoot;
-        //     var elementTime = elementShadowRoot.querySelector('.time');
-        //     assert.equal(elementTime.innerHTML, alertAlsoAt);
-        //     // perform any other assertions you want here
-        //     done();
-        //   });
-
-        //   // execute some code which should trigger 'some_event' on element
-        //   element.set('run', true);
-        //   assert.equal(element.signalAlertAlsoAt, false);
-        // });
-
-        // test('should stop after 2 seconds (check test duration) if starting at 2', function(done){
-        //   // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-        //   var element = fixture('StopPropertyTestFixture');
-        //   const startTime = element.startTime;
-        //   // assert.equal(element.startTime, '30');
-        //   // assert.equal(element.stopAt, stopAtTestValue);
-
-        //   // console.log(element.signalFinish);
-        //   // var p = new Proxy(element.signalFinsi, handler);
+        //   const firstStopTime = 2;
+        //   const checkAgainTime = 1;
 
         //   const oneSecondAfterShouldAlert = 1000 + (startTime)*1000;
         //   this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
 
-        //   element.addEventListener('finished',function(){
+        //   element.addEventListener('finish', () => {
         //     assert.equal(element.currentTime, 0);
         //     var elementShadowRoot = element.shadowRoot;
         //     var elementTime = elementShadowRoot.querySelector('.time');
@@ -101,23 +162,68 @@
         //     done();
         //   });
 
+        //   setTimeout(() => {
+        //     element.set('run', false);
+        //     assert.equal(element.currentTime, (startTime - firstStopTime));
+        //     log(element.currentTime, (startTime - firstStopTime));            
+        //     element.set('run', true);
+        //     setTimeout(() => {
+        //       log(element.currentTime, (startTime - firstStopTime - checkAgainTime));            
+        //       element.set('run', false);
+        //       assert.equal(element.currentTime, (startTime - firstStopTime - checkAgainTime));
+        //       done();
+        //     }, checkAgainTime*1100)
+        //   }, firstStopTime*1100)
         //   // execute some code which should trigger 'some_event' on element
-        //   element.run = true;
+        //   element.set('run', true);
         // });
-        
-        // test('should stop after pause event', function(done){
+
+
+        // test('Start-stop-wait-start test. Start then stops immediately. Wait 2 seconds. Start again. Should finish after 6 seconds (check test duration) if starting at 4', (done) => {
         //   // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-        //   var element = fixture('StopPropertyTestFixture');
+        //   var element = fixture('StartStopWaitPropertyTestFixture');
         //   const startTime = element.startTime;
+        //   const firstStopTime = 1;
+        //   const waitTime = 3;
+        //   const checkAgainTime = 2;
 
-        //   element.play();
-        //   setTimeout(function () {
-        //     element.stop();
-        //     assert.equal(element.currentTime, (startTime - 1));
+        //   const oneSecondAfterShouldAlert = 1000 + (startTime)*1000 + waitTime*1000;
+        //   this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+
+        //   element.addEventListener('finish', () => {
+        //     assert.equal(element.currentTime, 0);
+        //     var elementShadowRoot = element.shadowRoot;
+        //     var elementTime = elementShadowRoot.querySelector('.time');
+        //     assert.equal(elementTime.innerHTML, 0);
+        //     // perform any other assertions you want here
         //     done();
-        //   }, 1000);
+        //   });
 
+        //   setTimeout(() => {
+        //     log(element.currentTime, (startTime - firstStopTime));
+        //     element.set('run', false);
+        //     assert.equal(element.currentTime, (startTime - firstStopTime));
+        //     setTimeout(() => {
+        //       console.log(`after ${waitTime} seconds waiting I am back`)
+        //       log(element.currentTime, (startTime - firstStopTime));
+        //       element.set('run', true);
+        //       assert.equal(element.currentTime, (startTime - firstStopTime));
+        //       setTimeout(() => {
+        //         log(element.currentTime, (startTime - firstStopTime - checkAgainTime));
+        //         element.set('run', false);
+        //         assert.equal(element.currentTime, (startTime - firstStopTime - checkAgainTime));
+        //         done();
+        //       }, checkAgainTime*1100)
+        //     }, waitTime*1100)
+        //   }, firstStopTime*1100)
+        //   // execute some code which should trigger 'some_event' on element
+        //   element.set('run', true);
         // });
+
+        function log(am, should) {
+          console.log(`${should} I should be`)
+          console.log(`${am} I am`, )
+        }
 
 
       });

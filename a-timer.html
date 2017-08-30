@@ -67,11 +67,18 @@ you can watch changes directly on `current-time` property, which updates every s
 <dom-module id="a-timer">
   <template>
     <style>
-      :host {
+       :host {
         display: block;
       }
     </style>
+    <div on-click="start">start</div>
+    <div on-click="stop">stop</div>
+    <div on-click="reset">reset</div>
     <div class="time">[[currentTime]]</div>
+    <div>signalAlertAlsoAt: [[signalAlertAlsoAt]]</div>
+    <div>signalFinish: [[signalFinish]]</div>
+    <div>resetProp: [[resetProp]]</div>
+
   </template>
 
   <script>
@@ -100,7 +107,7 @@ you can watch changes directly on `current-time` property, which updates every s
           */
           currentTime: {
             type: Number,
-            value: 30,
+            computed: 'computeCurrentTime(_preciseCurrentTime)',
           },
 
           /**
@@ -128,6 +135,14 @@ you can watch changes directly on `current-time` property, which updates every s
           },
 
           /**
+          * A property, instead of a traditional method, to reset the timer.
+          */
+          resetProp: {
+            type: Boolean,
+            value: true,
+          },
+
+          /**
           * A property, instead of a traditional event, to signal a periodic 'tick' alert set by ```alertTick```.
           */
           signalAlertTick: {
@@ -151,108 +166,136 @@ you can watch changes directly on `current-time` property, which updates every s
             value: false,
           },
 
+          _preciseCurrentTime: {
+            type: Number,
+            value: null,
+          },
+          _intervalId: {
+            type: String,
+            value: null,
+          },
+          _startTimestamp: {
+            type: Number,
+            value: null,
+          },
+          _startTimestampDiffToMiddle: {
+            type: Number,
+            value: null,
+          },
         };
       }
 
       static get observers() {
         return [
-          '_runChanged(run)'
+          '_runChanged(run)',
+          '_resetChanged(resetProp)',
+          '_signalFinishChanged(signalFinish)',
+          '_signalAlertAlsoAtChanged(signalAlertAlsoAt)',
         ];
       }
 
+      computeCurrentTime(_preciseCurrentTime) {
+        return Math.floor(_preciseCurrentTime);
+      }
       _runChanged(run) {
-        console.log(run)
-        run ? this.start() : this.stop();
+        console.log('run: ', run);
+        run ? this._start() : this._stop();
+      }
+      _resetChanged(resetProp) {
+        if (!resetProp) return;
+        this._reset();
+        this.set('resetProp', false);
+      }
+      _signalFinishChanged(signalFinish) {
+        if (signalFinish) {
+          console.log('signalFinish')
+          this.dispatchEvent(new CustomEvent('finish'));
+        }
+      }
+      _signalAlertAlsoAtChanged(signalAlertAlsoAt) {
+        if (signalAlertAlsoAt) {
+          this.dispatchEvent(new CustomEvent('alert', { detail: this.currentTime }));
+        }
       }
 
       /**
       * Starts the timer.
       */
       start() {
-        this._resetAlerts();
-        if (!this.time) this.time = performance.now();
-        if (!this.running) {
-          this.running = true;
-          requestAnimationFrame(this._step.bind(this));
-        }
+        this.set('run', true);
       }
 
       /**
       * Stops the timer.
       */
       stop() {
-        this.running = false;
-        this.time = null;
+        this.set('run', false);
       }
 
       /**
       * Resets the timer.
       */
       reset() {
+        this.set('run', false);
+        this.set('resetProp', true);
+      }
+
+      _start() {
+        this.set('run', true);
+        if (!this._preciseCurrentTime) {
+          this.set('_preciseCurrentTime', this.startTime);
+        }
         this._resetAlerts();
-        this.set('currentTime', this.startTime);
+        clearInterval(this._intervalId);
+        this._intervalId = setInterval(this._step.bind(this), 1000);
+      }
+
+      _stop() {
+        this.set('run', false);
+        this._startTimestamp = null;
+        clearInterval(this._intervalId);
+        // this._startTimestamp = null;
+      }
+
+      _reset() {
+        this._resetAlerts();
+        this.set('_preciseCurrentTime', this.startTime);
       }
 
       _resetAlerts() {
-        this.alreadyAlerted = false;
-        this.set('signalFinish', false);
+        this.set('signalAlertTick', false);
         this.set('signalAlertAlsoAt', false);
+        this.set('signalFinish', false);
       }
 
-      _step(timestamp) {
-        if (!this.running) return;
-        // this.calculate(timestamp);
-        this.time = timestamp;
-        this.exactTime = this.startTime - (this.time/1000);
-        this.set('currentTime', Math.ceil(this.exactTime));
-        console.log(this.currentTime)
-        if (!this.alreadyAlerted && Math.floor(this.exactTime) < this.alertAt) {
-          this.alreadyAlerted = true;
-          // console.log('alert!');
+      _step() {
+        const agora = (new Date()).getTime();
+        if (!this._startTimestamp) {
+          this._startTimestampDiffToMiddle = (500 - (agora % 1000))
+          this._startTimestamp = (agora + this._startTimestampDiffToMiddle - 500);
+        }
+        const agoraTryToBeAround500 = (agora + this._startTimestampDiffToMiddle);
+        const diffInSeconds = (agoraTryToBeAround500 - this._startTimestamp) / 1000;
+        const preciseCurrentTime = this.startTime - diffInSeconds;
+
+        console.log(this.startTime, this.currentTime, preciseCurrentTime, diffInSeconds, '.')
+        this.set('_preciseCurrentTime', (preciseCurrentTime))
+        console.log(this.startTime, this.currentTime, preciseCurrentTime, diffInSeconds)
+        // this.currentTime--;
+
+        if (!this.signalAlertAlsoAt && this.currentTime <= this.alertAlsoAt) {
           this.set('signalAlertAlsoAt', true);
-          this.dispatchEvent(new CustomEvent('alert', {detail: this.currentTime}));        
-        }        
-        if (Math.floor(this.exactTime) <= 0) {
-          this.set('currentTime', 0);
-          this.alreadyAlerted = true;
+        }
+        if (this.currentTime <= 0) {
+          // this.set('currentTime', 0);
+          // this._stop();
+          // console.log(this.run);
+          // console.log(this.run);
           this.set('signalFinish', true);
-          // console.log('alert!');
-          this.dispatchEvent(new CustomEvent('finish'), {detail: this.currentTime});     
-          console.log('oioi')
           this.set('run', false);
-          // this.stop();
-        }        
-        // this.print();
-        requestAnimationFrame(this._step.bind(this));
+        }
+        
       }
-    
-      // calculate(timestamp) {
-      //   var diff = timestamp - this.time;
-      //   return (diff/1000);
-      //   // Hundredths of a second are 100 ms
-      //   this.times[2] += diff / 10;
-      //   // Seconds are 100 hundredths of a second
-      //   if (this.times[2] >= 100) {
-      //       this.times[1] += 1;
-      //       this.times[2] -= 100;
-      //   }
-      //   // Minutes are 60 seconds
-      //   if (this.times[1] >= 60) {
-      //       this.times[0] += 1;
-      //       this.times[1] -= 60;
-      //   }
-      // }
-      
-      // print() {
-      //     // this.display.innerText = this.format(this.times);
-      // }
-      
-      // format(times) {
-      //           return `\
-      //   ${pad0(times[0], 2)}:\
-      //   ${pad0(times[1], 2)}:\
-      //   ${pad0(Math.floor(times[2]), 2)}`;
-      // }
 
     }
 
