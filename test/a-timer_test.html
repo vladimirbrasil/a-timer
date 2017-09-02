@@ -48,182 +48,207 @@
       </template>
     </test-fixture>
 
-    <test-fixture id="StartTimePropertyTestFixture">
-      <template>
-        <a-timer start-time="77"></a-timer>
-      </template>
-    </test-fixture>
-
-    <test-fixture id="AlertAlsoAtPropertyTestFixture">
-      <template>
-        <a-timer start-time="30" alert-also-at="28" signal-alert-also-at="{{signalAlert}}" on-alert="alert"></a-timer>
-      </template>
-    </test-fixture>
-
-    <test-fixture id="StopPropertyTestFixture">
-      <template>
-        <a-timer start-time="2" signal-finish="{{signalFinished}}" on-finish="finished"></a-timer>
-      </template>
-    </test-fixture>
-
-    <test-fixture id="StartStopPropertyTestFixture">
-      <template>
-        <a-timer start-time="6"></a-timer>
-      </template>
-    </test-fixture>
-
-    <test-fixture id="StartStopWaitPropertyTestFixture">
-      <template>
-        <a-timer start-time="6"></a-timer>
-      </template>
-    </test-fixture>
-
     <script>
-      suite('a-timer', function() {
+      describe( 'a-timer static tests', function() {
+        let element;
 
-        test('instantiating the element with default properties works', function() {
-          var element = fixture('BasicTestFixture');
-          assert.equal(element.startTime, 30);
-          var elementShadowRoot = element.shadowRoot;
-          var elementTime = elementShadowRoot.querySelector('.time');
-          // assert.equal(elementTime.innerHTML, '30');
+        beforeEach( function() {
+          element = fixture('BasicTestFixture');
+        });
+    
+        it( 'instantiating the element with default properties works', function() {
+          expect( element.startTime ).to.equal( 30 );
+        });
+    
+        it( 'instantiating the element with default properties works', function() {
+          element.set('startTime', 77);
+          expect( element.startTime ).to.equal( 77 );
         });
 
-        test('setting start-time on the element works', function() {
-          var element = fixture('StartTimePropertyTestFixture');
-          assert.equal(element.startTime, '77');
-        });
+      });
 
-        test('should emit an alert in 2 seconds (check test duration) if alerAlsoAt is set at 28 starting at 30', (done) => {
-          // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-          var element = fixture('AlertAlsoAtPropertyTestFixture');
-          const alertAlsoAt = element.alertAlsoAt;
-          const startTime = element.startTime;
-          // assert.equal(element.startTime, '30');
-          // assert.equal(element.alertAlsoAt, alertAlsoAtTestValue);
+      describe( 'a-timer timed tests', function() {
+        let element;
 
-          const oneSecondAfterShouldAlert = 1000 + (startTime - alertAlsoAt)*1000;
-          this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
-
-          element.addEventListener('alert',() => {
-            assert.equal(element.currentTime, alertAlsoAt);
-            assert.equal(element.signalAlertAlsoAt, true);
-            var elementShadowRoot = element.shadowRoot;
-            var elementTime = elementShadowRoot.querySelector('.time');
-            assert.equal(elementTime.innerHTML, alertAlsoAt);
-            element.set('run', false);
-            // perform any other assertions you want here
-            done();
-          });
-
-          // execute some code which should trigger 'some_event' on element
-          element.set('run', true);
-          assert.equal(element.signalAlertAlsoAt, false);
-        });
-
-        test('should stop after 2 seconds (check test duration) if starting at 2', (done) => {
-          // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-          var element = fixture('StopPropertyTestFixture');
-          const startTime = element.startTime;
-
-          const oneSecondAfterShouldAlert = 1000 + (startTime)*1000;
-          this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
-
-          element.addEventListener('finish', () => {
-            assert.equal(element.currentTime, 0);
-            var elementShadowRoot = element.shadowRoot;
-            var elementTime = elementShadowRoot.querySelector('.time');
-            assert.equal(elementTime.innerHTML, 0);
-            // perform any other assertions you want here
-            done();
-          });
-
-          // execute some code which should trigger 'some_event' on element
+        beforeEach( function() {
+          this.clock = sinon.useFakeTimers();
+          element = fixture('BasicTestFixture');
           element.set('run', true);
         });
+    
+        afterEach( function() {
+          element.set('run', false);
+          this.clock.restore();
+        });
+    
+        it( 'should move on start', function() {
+          const timeRunning = 12;
+          const should = element.startTime - timeRunning;
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: timeRunning},
+            {method: 'should',  time: should},
+            {method: 'am',      },
+          ]);
 
+        });
 
-        // test('Start-stop test. Start then stops after 2 seconds. Start immediately again. Should still finish after 4 seconds (check test duration) if starting at 4', (done) => {
-        //   // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-        //   var element = fixture('StartStopPropertyTestFixture');
-        //   const startTime = element.startTime;
-        //   const firstStopTime = 2;
-        //   const checkAgainTime = 1;
+        it( 'should stop after start', function() {
+          const timeRunning = 11;
+          const should = element.startTime - timeRunning;
+          const timeRunningAfterStop = 8;
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: timeRunning},
+            {method: 'paused',  time: timeRunningAfterStop},
+            {method: 'should',  time: should},
+            {method: 'am',      },
+          ]);
 
-        //   const oneSecondAfterShouldAlert = 1000 + (startTime)*1000;
-        //   this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+        });
 
-        //   element.addEventListener('finish', () => {
-        //     assert.equal(element.currentTime, 0);
-        //     var elementShadowRoot = element.shadowRoot;
-        //     var elementTime = elementShadowRoot.querySelector('.time');
-        //     assert.equal(elementTime.innerHTML, 0);
-        //     // perform any other assertions you want here
-        //     done();
-        //   });
+        // it( 'should be precise after restart', function() {
+        //   const timeRunning = 11;
+        //   const timeRunningAfterStop = 8;
+        //   const timeRunningAfterRestart = 9;
+        //   const should = element.startTime - (timeRunning + timeRunningAfterRestart);
+        //   buildTimerTest(this.clock,
+        //   [
+        //     {method: 'start',   time: element.startTime}, 
+        //     {method: 'running', time: timeRunning},
+        //     {method: 'paused',  time: timeRunningAfterStop},
+        //     {method: 'running', time: timeRunningAfterRestart},
+        //     {method: 'should',  time: should},
+        //     {method: 'am',      },
+        //   ]);
 
-        //   setTimeout(() => {
-        //     element.set('run', false);
-        //     assert.equal(element.currentTime, (startTime - firstStopTime));
-        //     log(element.currentTime, (startTime - firstStopTime));            
-        //     element.set('run', true);
-        //     setTimeout(() => {
-        //       log(element.currentTime, (startTime - firstStopTime - checkAgainTime));            
-        //       element.set('run', false);
-        //       assert.equal(element.currentTime, (startTime - firstStopTime - checkAgainTime));
-        //       done();
-        //     }, checkAgainTime*1100)
-        //   }, firstStopTime*1100)
-        //   // execute some code which should trigger 'some_event' on element
-        //   element.set('run', true);
+        // });
+
+        // it( 'should be able to reset', function() {
+        //   buildTimerTest(this.clock,
+        //   [
+        //     {method: 'start',   time: element.startTime}, 
+        //     {method: 'running', time: 7},
+        //     {method: 'reset',   },
+        //     {method: 'should',  time: element.startTime},
+        //     {method: 'am',      },
+        //   ]);
+
+        // });
+
+        // it( 'after reset, should inform last current time before reset', function() {
+        //   const timeRunning = 13;
+        //   const should = element.startTime - timeRunning;
+        //   buildTimerTest(this.clock,
+        //   [
+        //     {method: 'start',   time: element.startTime}, 
+        //     {method: 'running', time: timeRunning},
+        //     {method: 'reset',   },
+        //     {customMessage: `last current time, before reset should be:`},
+        //     {method: 'should',  time: should},
+        //     {method: 'am',      prop: 'lastCurrentTime'},
+        //   ]);
+
+        // });
+
+        // it( 'should be precise after reset', function() {
+        //   const runningTimeAfterReset = 9;
+        //   const should = element.startTime - runningTimeAfterReset;
+        //   buildTimerTest(this.clock,
+        //   [
+        //     {method: 'start',   time: element.startTime     }, 
+        //     {method: 'running', time: 4                     },
+        //     {method: 'reset',   },
+        //     {method: 'paused',  time: 8                     },
+        //     {method: 'running', time: runningTimeAfterReset },
+        //     {method: 'should',  time: should                },
+        //     {method: 'am',      },
+        //   ]);
         // });
 
 
-        // test('Start-stop-wait-start test. Start then stops immediately. Wait 2 seconds. Start again. Should finish after 6 seconds (check test duration) if starting at 4', (done) => {
-        //   // https://stackoverflow.com/questions/16826352/whats-the-best-way-to-unit-test-an-event-being-emitted-in-nodejs
-        //   var element = fixture('StartStopWaitPropertyTestFixture');
-        //   const startTime = element.startTime;
-        //   const firstStopTime = 1;
-        //   const waitTime = 3;
-        //   const checkAgainTime = 2;
+        function buildTimerTest(clock, arMethodsAndTimes) {
+          // TODO: refactor!
+          arMethodsAndTimes.forEach((methodAndTimeObj) => {
+            ({method, time} = methodAndTimeObj)
 
-        //   const oneSecondAfterShouldAlert = 1000 + (startTime)*1000 + waitTime*1000;
-        //   this.timeout(oneSecondAfterShouldAlert); //timeout with an error if done() isn't called within one second
+            if (!method || !time) return;
 
-        //   element.addEventListener('finish', () => {
-        //     assert.equal(element.currentTime, 0);
-        //     var elementShadowRoot = element.shadowRoot;
-        //     var elementTime = elementShadowRoot.querySelector('.time');
-        //     assert.equal(elementTime.innerHTML, 0);
-        //     // perform any other assertions you want here
-        //     done();
-        //   });
+            let actions = {
+              start:  (t) => {
+                // element.set('startTime', t); //already set at beforeEach
+              },
+              running:  (t) => {
+                element.set('run', true);
+                clock.tick(t*1000);
+              },
+              paused:  (t) => {
+                element.set('run', false);
+                clock.tick(t*1000);
+              },
+              reset:  () => {
+                element.set('reset', true);
+              },
+            };
 
-        //   setTimeout(() => {
-        //     log(element.currentTime, (startTime - firstStopTime));
-        //     element.set('run', false);
-        //     assert.equal(element.currentTime, (startTime - firstStopTime));
-        //     setTimeout(() => {
-        //       console.log(`after ${waitTime} seconds waiting I am back`)
-        //       log(element.currentTime, (startTime - firstStopTime));
-        //       element.set('run', true);
-        //       assert.equal(element.currentTime, (startTime - firstStopTime));
-        //       setTimeout(() => {
-        //         log(element.currentTime, (startTime - firstStopTime - checkAgainTime));
-        //         element.set('run', false);
-        //         assert.equal(element.currentTime, (startTime - firstStopTime - checkAgainTime));
-        //         done();
-        //       }, checkAgainTime*1100)
-        //     }, waitTime*1100)
-        //   }, firstStopTime*1100)
-        //   // execute some code which should trigger 'some_event' on element
-        //   element.set('run', true);
-        // });
+            if (!actions[method]) return;
+            actions[method](time);
+          });
 
-        function log(am, should) {
-          console.log(`${should} I should be`)
-          console.log(`${am} I am`, )
+          const amObj = arMethodsAndTimes.find(findAm)
+          const shouldObj = arMethodsAndTimes.find(findShould)
+          const am = findAmTime(amObj.prop);
+          const should = shouldObj.time;
+          let aditionalErrorMessage = buildEnhancedErrorMessage(arMethodsAndTimes);
+
+          // console.log(am, should, aditionalErrorMessage)
+          expect( am, aditionalErrorMessage ).to.equal( should );
+
+          function findAm(methodAndTimeObj) { 
+            return methodAndTimeObj.method === 'am';
+          }            
+          function findShould(methodAndTimeObj) { 
+            return methodAndTimeObj.method === 'should';
+          }         
+          function findAmTime(prop) {
+            return prop ? element[prop] : element.currentTime;
+          }   
+
+          function buildEnhancedErrorMessage(arMethodsAndTimes) {
+
+            let arErrorSentences = arMethodsAndTimes.map((methodAndTimeObj) => {
+              ({method, time, prop, customMessage} = methodAndTimeObj)
+
+              // if (method == 'am') console.log(methodAndTimeObj) 
+
+              const divider     = `------------------`;
+              const sadDivider  = `-------:/---------`;
+              let sentences = {
+                start:  ({time}) => `${Math.round(time)}   \t| starting at ${time}s`,
+                running:({time}) => `-${Math.round(time)}  \t| after ${time}s`,
+                reset:  ({time}) => `${Math.round(element.startTime)}   \t| I am reset again to ${element.startTime}s`,
+                paused: ({time}) => `(${Math.round(time)}) \t| disconsidering being stopped for ${time}s`,
+                should: ({time}) => `${divider}\n${Math.round(time)}   \t| i should be ${time}s`,
+                am:     ({prop}) => {
+                  const am = findAmTime(prop);
+                  const specialPropMessage = prop ? `${divider}\n'${prop}' property is being compared (instead of currentTime)` : '';
+                  return `${specialPropMessage}\n${sadDivider}\n${Math.round(am)}   \t| but i actually am ${am}s`;
+                },
+              };
+
+              if (customMessage) return `${divider}\n${customMessage}`;
+              return sentences[method]({time, prop});
+            });
+
+            return arErrorSentences.join(`\n`) + `\n\n`;
+          }
+
+
         }
+
+
 
 
       });
