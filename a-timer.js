@@ -1,19 +1,27 @@
 /*
 `<a-timer>` is a countdown timer. It is capable to be driven by attributes only, as you wish.
+
 ```html
 <a-timer start-time="30"></a-timer>
 ```
 
-You can observe changes to the `[[finished]]` attribute or to the `on-finish` event. 
+You can observe changes to the `[[finished]]` attribute or to the `finish` event. 
 Suit yourself. 
 ```html
-<a-timer finished></a-timer>
+<a-timer finished="{{finished}}"></a-timer>
 <a-timer on-finish="timerFinished"></a-timer>
 ```
 
 `<a-timer>` may easily be attached to graphic elements.
 ```html
-<a-timer start-time="30" current-time="{{currentTime}}"></a-timer>
+<a-timer current-time="{{currentTime}}"></a-timer>
+[[currentTime]]
+```
+
+It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically. 
+By default `current-time` is updated only on finish and whenever you ask for its value.
+```html
+<a-timer refresh-rate="200" current-time="{{currentTime}}"></a-timer>
 [[currentTime]]
 ```
 
@@ -28,20 +36,6 @@ Or use the `start`/`stop` methods.
 ```js
 this.$.myTimer.start();
 this.$.myTimer.stop();
-```
-
-Reset `<a-timer>` by changing `resetProp` property to true.
-As you would with a traditional method, but using a property instead.
-It will be reset at the instant the property changes to true.
-```html
-<a-timer start-time="30" reset-prop="[[reset]]"></a-timer>
-```
-Or use the `reset` method.
-```html
-<a-timer id="myTimer"></a-timer>
-```
-```js
-this.$.myTimer.reset();
 ```
 
 @element a-timer
@@ -97,7 +91,6 @@ class ATimer extends HTMLElement {
       this.setAttribute('current-time', this.startTime);
     this.removeAttribute('run');
     this.removeAttribute('resetProp');
-    // this.int = setInterval(() => console.log(this.currentTime), 1000);
   }
 
   disconnectedCallback() {
@@ -151,7 +144,18 @@ class ATimer extends HTMLElement {
   get lastCurrentTime() {
     return this.getAttribute('last-current-time');
   }
-  
+
+  /**
+  * Refresh rate (milliseconds) to periodically update current-time.
+  */
+  set refreshRate(value) {
+    // if (value < 5 || value > this.startTime*1000) return; 
+    this.setAttribute('refresh-rate', value);
+  }
+  get refreshRate() {
+    return this.getAttribute('refresh-rate');
+  }
+
   /**
   * A property, instead of a traditional method, to start/stop the timer.
   */
@@ -231,18 +235,26 @@ class ATimer extends HTMLElement {
   }
 
   _start() {
+    if (this.finished) this.finished = false;
     clearTimeout(this._timeoutHandler);
-    this._timeoutHandler = setTimeout(this._step.bind(this), this.timeoutPeriod)
+    this._timeoutHandler = setTimeout(this._step.bind(this), this.timeoutPeriod);
+
+    if (this.refreshRate) {
+      clearInterval(this.refreshRateTimer);
+      this.refreshRateTimer = setInterval(this._step.bind(this), this.refreshRate);
+    }
   }
 
   _step() {
     const now = this._now;
+    this.currentTime;
     this.finished = (this._dateAhead <= now); 
   }
   
   _stop() {
     this.currentTime = this._updateCurrentTime();
     clearTimeout(this._timeoutHandler);
+    clearInterval(this.refreshRateTimer);
   }
 
   _reset() {

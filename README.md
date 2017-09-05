@@ -30,13 +30,20 @@
 You can observe changes to the `[[finished]]` attribute or to the `finish` event. 
 Suit yourself. 
 ```html
-<a-timer finished></a-timer>
+<a-timer finished="{{finished}}"></a-timer>
 <a-timer on-finish="timerFinished"></a-timer>
 ```
 
 `<a-timer>` may easily be attached to graphic elements.
 ```html
-<a-timer start-time="30" current-time="{{currentTime}}"></a-timer>
+<a-timer current-time="{{currentTime}}"></a-timer>
+[[currentTime]]
+```
+
+It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically. 
+By default `current-time` is updated only on finish and whenever you ask for its value.
+```html
+<a-timer refresh-rate="200" current-time="{{currentTime}}"></a-timer>
 [[currentTime]]
 ```
 
