@@ -27,10 +27,12 @@
 <a-timer start-time="30"></a-timer>
 ```
 
-You can observe changes to the `[[finished]]` attribute or to the `on-finish` event. 
+You can observe changes to the `[[finished]]` attribute or to the `finish` event. 
 Suit yourself. 
+```html
 <a-timer finished></a-timer>
 <a-timer on-finish="timerFinished"></a-timer>
+```
 
 `<a-timer>` may easily be attached to graphic elements.
 ```html
