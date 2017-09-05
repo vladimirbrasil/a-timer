@@ -39,12 +39,13 @@
     <script src="../../web-component-tester/browser.js"></script>
 
     <link rel="import" href="../a-timer.html">
+    <script src="../a-timer-raw.js"></script>
   </head>
   <body>
 
     <test-fixture id="BasicTestFixture">
       <template>
-        <a-timer></a-timer>
+        <a-timer-raw></a-timer-raw>
       </template>
     </test-fixture>
 
@@ -57,12 +58,12 @@
         });
     
         it( 'instantiating the element with default properties works', function() {
-          expect( element.startTime ).to.equal( 30 );
+          expect( element.startTime ).to.equal( '30' );
         });
     
         it( 'instantiating the element with default properties works', function() {
-          element.set('startTime', 77);
-          expect( element.startTime ).to.equal( 77 );
+          element.startTime = 77;
+          expect( element.startTime ).to.equal( '77' );
         });
 
       });
@@ -73,15 +74,15 @@
         beforeEach( function() {
           this.clock = sinon.useFakeTimers();
           element = fixture('BasicTestFixture');
-          element.set('run', true);
+          element.run = true;
         });
     
         afterEach( function() {
-          element.set('run', false);
+          element.run = false;
           this.clock.restore();
         });
     
-        it( 'should move on start', function() {
+        it( 'should start', function() {
           const timeRunning = 12;
           const should = element.startTime - timeRunning;
           buildTimerTest(this.clock,
@@ -109,64 +110,64 @@
 
         });
 
-        // it( 'should be precise after restart', function() {
-        //   const timeRunning = 11;
-        //   const timeRunningAfterStop = 8;
-        //   const timeRunningAfterRestart = 9;
-        //   const should = element.startTime - (timeRunning + timeRunningAfterRestart);
-        //   buildTimerTest(this.clock,
-        //   [
-        //     {method: 'start',   time: element.startTime}, 
-        //     {method: 'running', time: timeRunning},
-        //     {method: 'paused',  time: timeRunningAfterStop},
-        //     {method: 'running', time: timeRunningAfterRestart},
-        //     {method: 'should',  time: should},
-        //     {method: 'am',      },
-        //   ]);
+        it( 'should be precise after restart', function() {
+          const timeRunning = 11;
+          const timeRunningAfterStop = 8;
+          const timeRunningAfterRestart = 9;
+          const should = element.startTime - (timeRunning + timeRunningAfterRestart);
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: timeRunning},
+            {method: 'paused',  time: timeRunningAfterStop},
+            {method: 'running', time: timeRunningAfterRestart},
+            {method: 'should',  time: should},
+            {method: 'am',      },
+          ]);
 
-        // });
+        });
 
-        // it( 'should be able to reset', function() {
-        //   buildTimerTest(this.clock,
-        //   [
-        //     {method: 'start',   time: element.startTime}, 
-        //     {method: 'running', time: 7},
-        //     {method: 'reset',   },
-        //     {method: 'should',  time: element.startTime},
-        //     {method: 'am',      },
-        //   ]);
+        it( 'should be able to reset', function() {
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: 7},
+            {method: 'reset',   },
+            {method: 'should',  time: element.startTime},
+            {method: 'am',      },
+          ]);
 
-        // });
+        });
 
-        // it( 'after reset, should inform last current time before reset', function() {
-        //   const timeRunning = 13;
-        //   const should = element.startTime - timeRunning;
-        //   buildTimerTest(this.clock,
-        //   [
-        //     {method: 'start',   time: element.startTime}, 
-        //     {method: 'running', time: timeRunning},
-        //     {method: 'reset',   },
-        //     {customMessage: `last current time, before reset should be:`},
-        //     {method: 'should',  time: should},
-        //     {method: 'am',      prop: 'lastCurrentTime'},
-        //   ]);
+        it( 'after reset, should inform last current time before reset', function() {
+          const timeRunning = 13;
+          const should = element.startTime - timeRunning;
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: timeRunning},
+            {method: 'reset',   },
+            {customMessage: `last current time, before reset should be:`},
+            {method: 'should',  time: should},
+            {method: 'am',      prop: 'lastCurrentTime'},
+          ]);
 
-        // });
+        });
 
-        // it( 'should be precise after reset', function() {
-        //   const runningTimeAfterReset = 9;
-        //   const should = element.startTime - runningTimeAfterReset;
-        //   buildTimerTest(this.clock,
-        //   [
-        //     {method: 'start',   time: element.startTime     }, 
-        //     {method: 'running', time: 4                     },
-        //     {method: 'reset',   },
-        //     {method: 'paused',  time: 8                     },
-        //     {method: 'running', time: runningTimeAfterReset },
-        //     {method: 'should',  time: should                },
-        //     {method: 'am',      },
-        //   ]);
-        // });
+        it( 'should be precise after reset', function() {
+          const runningTimeAfterReset = 9;
+          const should = element.startTime - runningTimeAfterReset;
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime     }, 
+            {method: 'running', time: 4                     },
+            {method: 'reset',   },
+            {method: 'paused',  time: 8                     },
+            {method: 'running', time: runningTimeAfterReset },
+            {method: 'should',  time: should                },
+            {method: 'am',      },
+          ]);
+        });
 
 
         function buildTimerTest(clock, arMethodsAndTimes) {
@@ -174,22 +175,22 @@
           arMethodsAndTimes.forEach((methodAndTimeObj) => {
             ({method, time} = methodAndTimeObj)
 
-            if (!method || !time) return;
+            if (!method) return;
 
             let actions = {
               start:  (t) => {
-                // element.set('startTime', t); //already set at beforeEach
+                // element.startTime = t; //already set at beforeEach
               },
               running:  (t) => {
-                element.set('run', true);
+                element.run = true;
                 clock.tick(t*1000);
               },
               paused:  (t) => {
-                element.set('run', false);
+                element.run = false;
                 clock.tick(t*1000);
               },
               reset:  () => {
-                element.set('reset', true);
+                element.resetProp = true;
               },
             };
 
@@ -200,7 +201,7 @@
           const amObj = arMethodsAndTimes.find(findAm)
           const shouldObj = arMethodsAndTimes.find(findShould)
           const am = findAmTime(amObj.prop);
-          const should = shouldObj.time;
+          const should = shouldObj.time.toString();
           let aditionalErrorMessage = buildEnhancedErrorMessage(arMethodsAndTimes);
 
           // console.log(am, should, aditionalErrorMessage)
@@ -242,7 +243,7 @@
               return sentences[method]({time, prop});
             });
 
-            return arErrorSentences.join(`\n`) + `\n\n`;
+            return `\n${arErrorSentences.join(`\n`)}\n\n`;
           }
 
 
