@@ -4,7 +4,7 @@
     "vladimir bergier"
   ],
   "description": "A countdown timer",
-  "main": "a-timer.html",
+  "main": "a-timer.js",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0"
   },

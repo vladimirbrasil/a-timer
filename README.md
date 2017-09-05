@@ -9,7 +9,7 @@
 <custom-element-demo>
   <template>
     <script src="../webcomponentsjs/webcomponents-lite.js"></script>
-    <link rel="import" href="a-timer.html">
+    <script src="a-timer.js"></script>
     <style>
     </style>
     <next-code-block></next-code-block>
