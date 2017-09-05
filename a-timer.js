@@ -1,5 +1,50 @@
 /*
-  https://developers.google.com/web/fundamentals/architecture/building-components/best-practices#avoid-reentrancy
+`<a-timer>` is a countdown timer unusually capable to be driven by properties only.
+```html
+<a-timer start-at="30"></a-timer>
+```
+'Events' are signaled setting correspondent 'signal' property to true. 
+And then to false again after the second passes. 
+```html
+<a-timer start-at="30" signal-finish="{{finished}}"></a-timer>
+```
+You can observe changes to `[[finish]]`, acting when it is set to true, 
+as you would with an traditionally fired event.
+`<a-timer>` may easily be attached to graphic elements.
+```html
+<a-timer start-at="30" current-time="{{currentTime}}"></a-timer>
+[[currentTime]]
+```
+Start/stop `<a-timer>` by changing `run` property to true/false.
+As you would with a traditional method, but using a property instead.
+```html
+<a-timer start-at="30" run="[[run]]"></a-timer>
+```
+Reset `<a-timer>` by changing `reset` property to true.
+As you would with a traditional method, but using a property instead.
+It will be reset at the instant the property changes to true.
+```html
+<a-timer start-at="30" reset="[[reset]]"></a-timer>
+```
+It may include one more optional alert `alert-also-at`, 
+correspondingly signaled by `signal-alert-also-at`.
+```html
+<a-timer 
+  start-at="30" 
+  alert-also-at="10" 
+  signal-alert-also-at="{{signalAlertAlsoAt}}" 
+  signal-finish="{{finished}}>
+</a-timer>
+```
+It may alert periodically.
+```html
+<a-timer start-at="30" alert-tick="2" signal-alert-tick="{{signalAlertTick}}"></a-timer>
+```
+A tick is meant to be higher than 1 second. For 1 second ticks, 
+you can watch changes directly on `current-time` property, which updates every second. 
+@element a-timer
+@hero hero.svg
+@demo demo/index.html
 */
 
 const template = document.createElement('template');
@@ -22,7 +67,7 @@ template.innerHTML = `
 //   }
 // });
 
-class ATimerRaw extends HTMLElement {
+class ATimer extends HTMLElement {
   static get observedAttributes() {
     return ['start-time', 'current-time', 'run', 'resetProp', 'finished'];
   }
@@ -50,7 +95,7 @@ class ATimerRaw extends HTMLElement {
       this.setAttribute('current-time', this.startTime);
     this.removeAttribute('run');
     this.removeAttribute('resetProp');
-    this.int = setInterval(() => console.log(this.currentTime), 1000);
+    // this.int = setInterval(() => console.log(this.currentTime), 1000);
   }
 
   disconnectedCallback() {
@@ -92,7 +137,7 @@ class ATimerRaw extends HTMLElement {
     const now = this._now;
     this.timeoutPeriod = this.currentTime*1000;
     this._dateAhead = now + this.timeoutPeriod;
-    console.log(this.currentTime) //, now/1000, this._dateAhead/1000);    
+    // console.log(this.currentTime) //, now/1000, this._dateAhead/1000);    
   }
 
   /**
@@ -119,15 +164,10 @@ class ATimerRaw extends HTMLElement {
     }
     else {
       this.removeAttribute('run');
-      // console.log('o3', this.currentTime)     
       this._stop();
-      // this.stop();
-      // console.log('o4', this.currentTime)     
     }
-
-
-
   }
+
   get run() {
     return this.hasAttribute('run');
   }
@@ -154,6 +194,7 @@ class ATimerRaw extends HTMLElement {
       const currentTime = this.currentTime;
       // console.log(currentTime);
       this.setAttribute('finished', '');
+      this.resetProp = true;
       this.dispatchEvent(new CustomEvent('finish'), { detail: currentTime }); 
       // console.log('oi', this.currentTime)     
       if (this.run) this.run = false;
@@ -188,10 +229,6 @@ class ATimerRaw extends HTMLElement {
   }
 
   _start() {
-    // console.log('_start')
-    // const now = this._now;
-    // const timeoutPeriod = this.currentTime*1000;
-    // const timeoutPeriod = this._setDateAhead();
     clearTimeout(this._timeoutHandler);
     this._timeoutHandler = setTimeout(this._step.bind(this), this.timeoutPeriod)
   }
@@ -207,13 +244,11 @@ class ATimerRaw extends HTMLElement {
   }
 
   _reset() {
-    console.log(this.currentTime, this.startTime)
     this.run = false; //User's taste: resets and stops; or only resets.
     this.currentTime = this.startTime;
-    console.log(this.currentTime, this.startTime)
   }
   
 }
 
-customElements.define('a-timer-raw', ATimerRaw);
+customElements.define('a-timer', ATimer);
 

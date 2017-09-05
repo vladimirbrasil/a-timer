@@ -3,6 +3,7 @@
   Test: http://127.0.0.1:8080/components/a-timer/test/
   Demo: http://127.0.0.1:7777/components/a-timer/demo/
 
+  Raw custom-elements: https://developers.google.com/web/fundamentals/architecture/building-components/best-practices#avoid-reentrancy
   Reference: https://codepen.io/_Billy_Brown/pen/dbJeh
   Reference: https://www.w3schools.com/howto/howto_js_countdown.asp
   Elements: https://docs.google.com/document/d/1mQfDjxcqaXeS1ZtZDqwAF0Mdu-XNhZkJyCx-z8pxzUU/edit#
@@ -38,14 +39,14 @@
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
 
-    <link rel="import" href="../a-timer.html">
-    <script src="../a-timer-raw.js"></script>
+    <!-- <link rel="import" href="../a-timer.html"> -->
+    <script src="../a-timer.js"></script>
   </head>
   <body>
 
     <test-fixture id="BasicTestFixture">
       <template>
-        <a-timer-raw></a-timer-raw>
+        <a-timer></a-timer>
       </template>
     </test-fixture>
 
