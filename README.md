@@ -2,7 +2,7 @@
 
 ## Description
 
-`<a-timer>` is a countdown timer unusually capable to be driven by properties only.
+`<a-timer>` is a countdown timer. It is capable to be driven by attributes only, as you wish.
 
 <!---
 ```
@@ -18,66 +18,52 @@
 ```
 -->
 ```html
-<a-timer start-at="30" run="true"></a-timer>
+<a-timer start-at="5" run="true"></a-timer>
 ```
 
 ## Usage
 
 ```html
-<a-timer start-at="30"></a-timer>
+<a-timer start-time="30"></a-timer>
 ```
 
-'Events' are signaled setting correspondent 'signal' property to true. 
-And then to false again after the second passes. 
-
-```html
-<a-timer start-at="30" signal-finish="{{finished}}"></a-timer>
-```
-
-You can observe changes to `[[finish]]`, acting when it is set to true, 
-as you would with an traditionally fired event.
+You can observe changes to the `[[finished]]` attribute or to the `on-finish` event. 
+Suit yourself. 
+<a-timer finished></a-timer>
+<a-timer on-finish="timerFinished"></a-timer>
 
 `<a-timer>` may easily be attached to graphic elements.
-
 ```html
-<a-timer start-at="30" current-time="{{currentTime}}"></a-timer>
+<a-timer start-time="30" current-time="{{currentTime}}"></a-timer>
 [[currentTime]]
 ```
 
 Start/stop `<a-timer>` by changing `run` property to true/false.
-As you would with a traditional method, but using a property instead.
-
 ```html
-<a-timer start-at="30" run="[[run]]"></a-timer>
+<a-timer start-time="30" run="[[run]]"></a-timer>
+```
+Or use the `start`/`stop` methods.
+```html
+<a-timer id="myTimer"></a-timer>
+```
+```js
+this.$.myTimer.start();
+this.$.myTimer.stop();
 ```
 
-Reset `<a-timer>` by changing `reset` property to true.
+Reset `<a-timer>` by changing `resetProp` property to true.
 As you would with a traditional method, but using a property instead.
 It will be reset at the instant the property changes to true.
-
 ```html
-<a-timer start-at="30" reset="[[reset]]"></a-timer>
+<a-timer start-time="30" reset-prop="[[reset]]"></a-timer>
 ```
-
-It may include one more optional alert `alert-also-at`, 
-correspondingly signaled by `signal-alert-also-at`.
-
+Or use the `reset` method.
 ```html
-<a-timer 
-  start-at="30" 
-  alert-also-at="10" 
-  signal-alert-also-at="{{signalAlertAlsoAt}}" 
-  signal-finish="{{finished}}>
-</a-timer>
+<a-timer id="myTimer"></a-timer>
 ```
-
-It may alert periodically.
-
-```html
-<a-timer start-at="30" alert-tick="2" signal-alert-tick="{{signalAlertTick}}"></a-timer>
+```js
+this.$.myTimer.reset();
 ```
-A tick is meant to be higher than 1 second. For 1 second ticks, 
-you can watch changes directly on `current-time` property, which updates every second. 
 
 ## Contributing
 
