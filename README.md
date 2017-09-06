@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/vladimirbrasil/a-timer.svg?branch=master)](https://travis-ci.org/vladimirbrasil/a-timer)
+[![Coverage Status](https://coveralls.io/repos/github/vladimirbrasil/a-timer/badge.svg?branch=master)](https://coveralls.io/github/vladimirbrasil/a-timer?branch=master)
 
 ## &lt;a-timer&gt;
 

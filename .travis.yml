@@ -23,27 +23,13 @@ before_script:
 # - $(npm bin)/polylint --no-recursion
 script:
 - xvfb-run $(npm bin)/wct
-- npm run coverage
-after_success: 'npm run coveralls'
 
-# # Polymer 2.0, but does not work: 
-# # ENOENT: no such file or directory, open '/home/travis/build/vladimirbrasil/a-timer/package.json'
-# # https://github.com/Polymer/hn-polymer-2/blob/master/.travis.yml
-# # polymer-cli   
-# language: node_js
-# sudo: required
-# dist: trusty
-# addons:
-#   firefox: latest
-#   apt:
-#     sources:
-#       - google-chrome
-#     packages:
-#       - google-chrome-stable
-# node_js: stable
-# before_script:
-#   - npm install -g bower polymer-cli
-#   - bower install
-# cache: yarn
-# script:
-#   - xvfb-run npm test
+# Coverage steps
+# - npm run coverage
+# after_success: 'npm run coveralls'
+  # Last travis error
+  # node node_modules/.bin/istanbul cover _mocha -- -R spec
+  # No test files found
+  # No coverage information was collected, exit without writing coverage information
+  # Coverage  https://www.gregjs.com/javascript/2016/how-to-get-a-shiny-coverage-badge-for-your-github-project/
+  #           https://github.com/rcosnita/polymer-karma-example
