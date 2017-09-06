@@ -1,9 +1,2 @@
-// Import chai.
-let chai = require('chai'),
-path = require('path');
-
-// Tell chai that we'll be using the "should" style assertions.
-chai.should();
-
-// Import the Rectangle class.
-let Rectangle = require(path.join(__dirname, '..', 'rectangle'));
+// TODO: wait for polymer 3.0 for better handoff to npm environment
+// https://oceanware.wordpress.com/2016/08/10/easy-tdd-setup-for-nodejs-es6-mocha-chai-istanbul/
