@@ -21,6 +21,9 @@
 <a-timer start-at="5" run="true"></a-timer>
 ```
 
+### Status
+[![Build Status](https://travis-ci.org/vladimirbrasil/a-timer.svg?branch=master)](https://travis-ci.org/vladimirbrasil/a-timer)
+
 ## Usage
 
 ```html
