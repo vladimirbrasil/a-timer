@@ -9,5 +9,30 @@
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.0"
-  }
+  },
+  "name": "a-timer",
+  "description": "[![Build Status](https://travis-ci.org/vladimirbrasil/a-timer.svg?branch=master)](https://travis-ci.org/vladimirbrasil/a-timer) [![Coverage Status](https://coveralls.io/repos/github/vladimirbrasil/a-timer/badge.svg?branch=master)](https://coveralls.io/github/vladimirbrasil/a-timer?branch=master)",
+  "version": "1.0.0",
+  "main": "a-timer.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "chai": "^4.1.2",
+    "coveralls": "^2.13.1",
+    "istanbul": "^0.4.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladimirbrasil/a-timer.git"
+  },
+  "keywords": [
+    "timer"
+  ],
+  "author": "vladimir bergier",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/vladimirbrasil/a-timer/issues"
+  },
+  "homepage": "https://github.com/vladimirbrasil/a-timer#readme"
 }

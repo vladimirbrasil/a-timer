@@ -58,7 +58,7 @@
     </test-fixture>
 
     <script>
-      describe( 'static tests', function() {
+      describe( 'static', function() {
         let element;
 
         beforeEach( function() {
@@ -66,17 +66,28 @@
         });
     
         it( 'instantiating the element with default properties works', function() {
-          expect( element.startTime ).to.equal( '30' );
+          expect( element.startTime,  `startTime` ).to.equal  ( '30' );
+          expect( element.run,        `run` ).to.equal        ( false );
+          expect( element.resetProp,  `resetProp` ).to.equal  ( false );
+          expect( element.refreshRate,`refreshRate` ).to.equal( null );
+          expect( element.finished,   `finished` ).to.equal   ( false );
         });
     
-        it( 'instantiating the element with default properties works', function() {
+        it( 'set element properties works', function() {
           element.startTime = 77;
-          expect( element.startTime ).to.equal( '77' );
+          expect( element.startTime, `startTime` ).to.equal( '77' );
+          element.refreshRate = 300;
+          expect( element.refreshRate,`refreshRate` ).to.equal( '300' );
+        });
+
+        it( `can't manually set [finished] property`, function() {
+          element.finished = true;
+          expect( element.finished, `finished` ).to.equal( false );
         });
 
       });
 
-      describe( 'timed tests', function() {
+      describe( 'timed', function() {
         let element;
 
         beforeEach( function() {
@@ -90,7 +101,7 @@
           this.clock.restore();
         });
     
-        it( 'should start', function() {
+        it( 'should be able to start', function() {
           const timeRunning = 12;
           const should = element.startTime - timeRunning;
           buildTimerTest(this.clock,
@@ -103,7 +114,7 @@
 
         });
 
-        it( 'should stop after start', function() {
+        it( 'should be able to stop after start', function() {
           const timeRunning = 11;
           const should = element.startTime - timeRunning;
           const timeRunningAfterStop = 8;
@@ -118,7 +129,7 @@
 
         });
 
-        it( 'should be precise after restart', function() {
+        it( 'should be able to restart after stop', function() {
           const timeRunning = 11;
           const timeRunningAfterStop = 8;
           const timeRunningAfterRestart = 9;
@@ -280,7 +291,7 @@
         
       });
 
-      describe( 'event tests', function() {
+      describe( 'events', function() {
         let element;
 
         beforeEach( function() {
@@ -312,7 +323,7 @@
 
       }); 
       
-      describe.skip( 'real time tests', function() {
+      describe.skip( 'real time', function() {
         let element;
 
         beforeEach( function() {

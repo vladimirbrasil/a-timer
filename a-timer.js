@@ -200,8 +200,9 @@ class ATimer extends HTMLElement {
   * A property, instead of a traditional method, to start/stop the timer.
   */
   set finished(value) {
+    const internalValue = this._iAmFinished();
     const wasFinished = this.finished;
-    const isFinished = Boolean(value);
+    const isFinished = Boolean(internalValue);
     if (wasFinished === isFinished) return;
     if (isFinished) {
       const currentTime = this.currentTime;
@@ -252,9 +253,12 @@ class ATimer extends HTMLElement {
   }
 
   _step() {
-    const now = this._now;
     this.currentTime;
-    this.finished = (this._dateAhead <= now); 
+    this.finished = this._iAmFinished();
+  }
+
+  _iAmFinished() {
+    return (this._dateAhead <= this._now);
   }
   
   _stop() {
