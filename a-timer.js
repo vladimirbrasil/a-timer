@@ -112,8 +112,9 @@ class ATimer extends HTMLElement {
   * Current time.
   */
   set currentTime(value) {
+    const val = value || this.startTime;
     this.lastCurrentTime = this.getAttribute('current-time');
-    this.setAttribute('current-time', value || this.startTime);
+    this.setAttribute('current-time', this._nonNegative(val));
   }
   get currentTime() {
     if (this.run) this.currentTime = this._updateCurrentTime();
@@ -132,16 +133,22 @@ class ATimer extends HTMLElement {
     const now = this._now;
     this.timeoutPeriod = this.currentTime*1000;
     this._dateAhead = now + this.timeoutPeriod;
-    // console.log(this.currentTime) //, now/1000, this._dateAhead/1000);    
+    // console.log(this.currentTime, now/1000, this._dateAhead/1000);    
+  }
+
+  _nonNegative(value) {
+    return (value < 0) ? 0 : value;
   }
 
   /**
   * Current time.
   */
   set lastCurrentTime(value) {
-    this.setAttribute('last-current-time', value || this.currentTime);
+    const val = value || this.currentTime;
+    this.setAttribute('last-current-time', this._nonNegative(val));
   }
   get lastCurrentTime() {
+    // console.log('oiii', this.getAttribute('last-current-time'))
     return this.getAttribute('last-current-time');
   }
 
@@ -198,7 +205,6 @@ class ATimer extends HTMLElement {
     if (wasFinished === isFinished) return;
     if (isFinished) {
       const currentTime = this.currentTime;
-      // console.log(currentTime);
       this.setAttribute('finished', '');
       this.resetProp = true;
       this.dispatchEvent(new CustomEvent('finish'), { detail: currentTime }); 
