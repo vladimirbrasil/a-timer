@@ -14,6 +14,11 @@
 
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
+        #animatableRotateId {
+          height: 10px;
+          width: 100px;
+          background-color: black;
+        }        
       </style>
     </custom-style>
   </head>
@@ -23,7 +28,13 @@
       <demo-snippet>
         <template>
           <!-- <button on-tap="start">Start</button> -->
-          <a-timer></a-timer>
+          <a-timer>
+            <div slot="animatableRotate" id="animatableRotateId"></div>
+            <div slot="playPause">Play/Pause</div>    
+            <div slot="play">Play</div>    
+            <div slot="pause">Pause</div>    
+            <div slot="reset">Reset</div>    
+          </a-timer>
         </template>
       </demo-snippet>
     </div>

@@ -50,9 +50,12 @@ template.innerHTML = `
       display: block;
     }
   </style>
-  <template>
-    <div id="time"></div>
-  </template>
+  <slot id="animatableRotateId" name="animatableRotate"></slot>
+  </br>
+  <slot id="playPauseId" name="playPause"></slot>
+  <slot id="playId" name="play"></slot>
+  <slot id="pauseId" name="pause"></slot>
+  <slot id="resetId" name="reset"></slot>
 `;
 
 // const io = new IntersectionObserver(entries => {
@@ -85,6 +88,7 @@ class ATimer extends HTMLElement {
   }
 
   connectedCallback() {
+    this._connectSlots();
     if (!this.hasAttribute('start-time'))
       this.setAttribute('start-time', 30);
     if (!this.hasAttribute('current-time'))
@@ -270,6 +274,49 @@ class ATimer extends HTMLElement {
   _reset() {
     this.run = false; //User's taste: resets and stops; or only resets.
     this.currentTime = this.startTime;
+  }
+
+  
+
+
+  _connectSlots() {
+    this._animatableRotate = this._getElementFromSlot('#animatableRotateId');
+    this._rotateAnimation = this._animatableRotate.animate(
+      { transform: [ 'rotate(0deg)', 'rotate(90deg)' ] }, 
+      { duration: 30000, iterations: 1 });
+    this._rotateAnimation.pause();
+    
+    this._playPauseEl = this._getElementFromSlot('#playPauseId');
+    this._playEl = this._getElementFromSlot('#playId');
+    this._pauseEl = this._getElementFromSlot('#pauseId');
+    this._resetEl = this._getElementFromSlot('#resetId');
+
+    this._playPauseEl.addEventListener('click', this._slotPlayPause.bind(this));
+    this._playEl.addEventListener('click', this._slotPlay.bind(this));
+    this._pauseEl.addEventListener('click', this._slotPause.bind(this));
+    this._resetEl.addEventListener('click', this._slotReset.bind(this));    
+  }
+  _getElementFromSlot(querySelector) {
+    var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
+    // console.log(slotElement);
+    const actualElement = slotElement.assignedNodes({flatten: true})
+      .find(n => n != null);
+    console.log(actualElement);
+    return actualElement;
+  }
+  
+  _slotPlayPause() {
+    this._rotateAnimation.play();
+  }
+  _slotPlay() {
+    this._rotateAnimation.play();
+  }
+  _slotPause() {
+    this._rotateAnimation.pause();
+  }
+  _slotReset() {
+    this._rotateAnimation.cancel();
+    this._rotateAnimation.playbackRate = 3;
   }
   
 }
