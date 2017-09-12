@@ -22,7 +22,7 @@
 ```
 -->
 ```html
-<a-timer start-at="60" run="true">
+<a-timer start-time="60" run="true">
   <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
   <div slot="playPause">Play/Pause</div>    
   <div slot="play">Play</div>    
