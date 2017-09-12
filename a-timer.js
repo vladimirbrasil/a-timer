@@ -295,18 +295,14 @@ class ATimer extends HTMLElement {
   _stop() {
     if (this._rotateAnimation) this._rotateAnimation.pause();
     if (this._rotateAnimation) {
-      const currentTime = this._rotateAnimation.currentTime / 1000;
-      const timerCurrentTime = parseFloat(this.startTime) - parseFloat(this.currentTime);
-      console.log(`timer startTime: ${this.startTime}`);
-      console.log(`timer currentTime: ${this.currentTime}`);
-      console.log(`timer elapsedTime: ${timerCurrentTime}`);
-      console.log(`animation currentTime: ${currentTime}`);
+      const currentTime = parseFloat(this.currentTime);
+      //TODO: [when stopped, ] currentTime returns actually lastCurrentTime.
+      const animCurrentTime = this._rotateAnimation.currentTime / 1000;
+      console.log(`animation currentTime: ${this.startTime - animCurrentTime}`);
       const currentRotation = this._getCurrentRotation();
       const currentRotation360 = currentRotation > 0 ? currentRotation : (360 + currentRotation);
       console.log(`animation currentRotation: ${currentRotation360}`);
-      // const currentRotationTime = this.startTime*currentRotation360/360;
-      // console.log(`animation currentRotationTime: ${currentRotationTime}`);
-      console.log(`timer versus animation time diff: ${timerCurrentTime - currentTime}`);
+      // console.log(`timer versus animation time diff: ${currentTime - animCurrentTime}`);
     }
     
     this.currentTime = this._updateCurrentTime();
