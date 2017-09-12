@@ -22,7 +22,13 @@
 ```
 -->
 ```html
-<a-timer start-at="5" run="true"></a-timer>
+<a-timer start-at="60" run="true">
+  <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
+  <div slot="playPause">Play/Pause</div>    
+  <div slot="play">Play</div>    
+  <div slot="pause">Pause</div>    
+  <div slot="reset">Reset</div>    
+</a-timer>
 ```
 
 ## Usage
@@ -42,6 +48,18 @@ Suit yourself.
 ```html
 <a-timer current-time="{{currentTime}}"></a-timer>
 [[currentTime]]
+```
+
+`<a-timer>` has slots. It can rotate-animate any rotate-animatable element passed to its `animatableRotate` slot.
+It can also handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
+```html
+<a-timer>
+  <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
+  <div slot="playPause">Play/Pause</div>    
+  <div slot="play">Play</div>    
+  <div slot="pause">Pause</div>    
+  <div slot="reset">Reset</div>    
+</a-timer>
 ```
 
 It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically. 

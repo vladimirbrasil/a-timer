@@ -18,6 +18,18 @@ Suit yourself.
 [[currentTime]]
 ```
 
+`<a-timer>` has slots. It can rotate-animate any rotate-animatable element passed to its `animatableRotate` slot.
+It can also handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
+```html
+<a-timer>
+  <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
+  <div slot="playPause">Play/Pause</div>    
+  <div slot="play">Play</div>    
+  <div slot="pause">Pause</div>    
+  <div slot="reset">Reset</div>    
+</a-timer>
+```
+
 It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically. 
 By default `current-time` is updated only on finish and whenever you ask for its value.
 ```html
