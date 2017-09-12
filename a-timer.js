@@ -246,6 +246,8 @@ class ATimer extends HTMLElement {
   }
 
   _start() {
+    if (this._rotateAnimation) this._rotateAnimation.play();
+    
     if (this.finished) this.finished = false;
     clearTimeout(this._timeoutHandler);
     this._timeoutHandler = setTimeout(this._step.bind(this), this.timeoutPeriod);
@@ -266,12 +268,16 @@ class ATimer extends HTMLElement {
   }
   
   _stop() {
+    if (this._rotateAnimation) this._rotateAnimation.pause();
+
     this.currentTime = this._updateCurrentTime();
     clearTimeout(this._timeoutHandler);
     clearInterval(this.refreshRateTimer);
   }
 
   _reset() {
+    if (this._rotateAnimation) this._rotateAnimation.cancel();
+    
     this.run = false; //User's taste: resets and stops; or only resets.
     this.currentTime = this.startTime;
   }
@@ -279,6 +285,9 @@ class ATimer extends HTMLElement {
   
 
 
+  /**
+  * Slots
+  */
   _connectSlots() {
     this._animatableRotate = this._getElementFromSlot('#animatableRotateId');
     if (this._animatableRotate) {
@@ -303,22 +312,22 @@ class ATimer extends HTMLElement {
     // console.log(slotElement);
     const actualElement = slotElement.assignedNodes({flatten: true})
       .find(n => n != null);
-    console.log(actualElement);
+    // console.log(actualElement);
     return actualElement;
   }
   
   _slotPlayPause() {
-    this._rotateAnimation.play();
+    this.run = !this.run;
   }
   _slotPlay() {
-    this._rotateAnimation.play();
+    this.run = true;
   }
   _slotPause() {
-    this._rotateAnimation.pause();
+    this.run = false;
   }
   _slotReset() {
-    this._rotateAnimation.cancel();
-    this._rotateAnimation.playbackRate = 3;
+    this.resetProp = true;
+    // this._rotateAnimation.playbackRate = 3;
   }
   
 }
