@@ -281,20 +281,22 @@ class ATimer extends HTMLElement {
 
   _connectSlots() {
     this._animatableRotate = this._getElementFromSlot('#animatableRotateId');
-    this._rotateAnimation = this._animatableRotate.animate(
-      { transform: [ 'rotate(0deg)', 'rotate(90deg)' ] }, 
-      { duration: 30000, iterations: 1 });
-    this._rotateAnimation.pause();
+    if (this._animatableRotate) {
+      this._rotateAnimation = this._animatableRotate.animate(
+        { transform: [ 'rotate(0deg)', 'rotate(90deg)' ] }, 
+        { duration: 30000, iterations: 1 });
+      this._rotateAnimation.pause();
+    }
     
     this._playPauseEl = this._getElementFromSlot('#playPauseId');
     this._playEl = this._getElementFromSlot('#playId');
     this._pauseEl = this._getElementFromSlot('#pauseId');
     this._resetEl = this._getElementFromSlot('#resetId');
 
-    this._playPauseEl.addEventListener('click', this._slotPlayPause.bind(this));
-    this._playEl.addEventListener('click', this._slotPlay.bind(this));
-    this._pauseEl.addEventListener('click', this._slotPause.bind(this));
-    this._resetEl.addEventListener('click', this._slotReset.bind(this));    
+    if (this._playPauseEl) this._playPauseEl.addEventListener('click', this._slotPlayPause.bind(this));
+    if (this._playEl) this._playEl.addEventListener('click', this._slotPlay.bind(this));
+    if (this._pauseEl) this._pauseEl.addEventListener('click', this._slotPause.bind(this));
+    if (this._resetEl) this._resetEl.addEventListener('click', this._slotReset.bind(this));    
   }
   _getElementFromSlot(querySelector) {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
