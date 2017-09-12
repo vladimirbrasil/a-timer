@@ -64,6 +64,18 @@
       </template>
     </test-fixture>
 
+    <test-fixture id="WithSlotsTestFixture">
+      <template>
+        <a-timer start-time="60">
+          <div slot="animatableRotate" id="animatableRotateId" style="height: 1px; width: 100px; background-color: black;"></div>
+          <div slot="playPause">Play/Pause</div>    
+          <div slot="play">Play</div>    
+          <div slot="pause">Pause</div>    
+          <div slot="reset">Reset</div>                        
+        </a-timer>
+      </template>
+    </test-fixture>
+
     <script>
       describe( 'static', function() {
         let element;
@@ -330,21 +342,17 @@
 
       }); 
       
-      describe.skip( 'real time', function() {
+      describe( 'real time', function() {
         let element;
 
-        beforeEach( function() {
-          element = fixture('BasicTestFixture');
-          element.startTime = '1';
-        });
-        
         afterEach( function() {
           element.run = false;
           element = null;
         });
-
-        it( 'should finish (real time test)', function(done) {
-          // element.resetProp = true;
+        
+        it.skip( 'should finish (real time test)', function(done) {
+          element = fixture('BasicTestFixture');
+          element.startTime = '1';
           element.run = true;
           const afterShouldAlert = 1000 * (parseFloat(element.startTime) + 1);
           
@@ -355,10 +363,59 @@
             expect( element.lastCurrentTime, `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` ).to.equal( '0' );
             done();
           });
-          this.timeout(afterShouldAlert)
+          this.timeout(afterShouldAlert);
         });
 
-      });        
+        it( 'should rotate in sync with time', function(done) {
+          element = fixture('WithSlotsTestFixture');
+          element.startTime = '60';
+          const timeDivider = 36;
+          const degreesPassed = 360 / timeDivider;
+          element.run = true;
+          const testTime = parseFloat(element.startTime) / timeDivider;
+          const afterShouldAlert = 1000 * (testTime + 1);
+
+          setTimeout(function(e) {
+            element.run = false;
+            console.log(element.currentTime, element.lastCurrentTime)
+            const currentRotation = element._getCurrentRotation();
+            console.log(`currentRotation: ${currentRotation}`)
+            expect( `${currentRotation}`, `current rotation should be ${degreesPassed}degrees with a start time of ${element.startTime}sec, after (${element.startTime}/${timeDivider})secs passed]` ).to.equal( `${degreesPassed}` );
+            done();
+          }, testTime * 1000);
+          // this.timeout(afterShouldAlert);
+        });
+        
+      });  
+      
+      describe.skip( 'slots', function() {
+        let element;
+
+        beforeEach( function() {
+          this.clock = sinon.useFakeTimers();
+          element = fixture('WithSlotsTestFixture');
+          element.startTime = 60;
+          element.run = true;
+        });
+        
+        afterEach( function() {
+          element.run = false;
+          this.clock.restore();
+        });      
+
+        it( '[FAKETIMER TEST NOT BUILD YET] should rotate 6 degrees per second (at 60sec start time)', function() {
+          const testTime = element.startTime / 4;
+          this.clock.tick(testTime * 1000);
+
+          // TODO: tick does not run rotate animation
+          // http://www.zsoltnagy.eu/fake-timers-with-sinonjs/
+          const currentRotation = element._getCurrentRotation();
+          console.log(`currentRotation: ${currentRotation}`)
+          expect( `${currentRotation}` ).to.equal( '90' );
+        });
+
+      }); 
+            
     </script> 
 
   </body>

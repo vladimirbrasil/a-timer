@@ -118,10 +118,23 @@ class ATimer extends HTMLElement {
   */
   set startTime(value) {
     if (value <= this.currentTime) this.currentTime = value;
-    this.setAttribute('start-time', value || 30);
+    const valueOrDefault = value || 30;
+    this.setAttribute('start-time', valueOrDefault);
+    this._updateAnimation();
   }
   get startTime() {
     return this.getAttribute('start-time');
+  }
+
+  _updateAnimation() {
+    if (this._animatableRotate) {
+      const duration = parseFloat(this.startTime) * 1000 || 30000;
+      console.log(this.startTime)
+      this._rotateAnimation = this._animatableRotate.animate(
+        { transform: [ 'rotate(0deg)', 'rotate(360deg)' ] }, 
+        { duration: duration, iterations: 1 });
+      this._rotateAnimation.pause();
+    }    
   }
 
   /**
@@ -281,7 +294,21 @@ class ATimer extends HTMLElement {
   
   _stop() {
     if (this._rotateAnimation) this._rotateAnimation.pause();
-
+    if (this._rotateAnimation) {
+      const currentTime = this._rotateAnimation.currentTime / 1000;
+      const timerCurrentTime = parseFloat(this.startTime) - parseFloat(this.currentTime);
+      console.log(`timer startTime: ${this.startTime}`);
+      console.log(`timer currentTime: ${this.currentTime}`);
+      console.log(`timer elapsedTime: ${timerCurrentTime}`);
+      console.log(`animation currentTime: ${currentTime}`);
+      const currentRotation = this._getCurrentRotation();
+      const currentRotation360 = currentRotation > 0 ? currentRotation : (360 + currentRotation);
+      console.log(`animation currentRotation: ${currentRotation360}`);
+      // const currentRotationTime = this.startTime*currentRotation360/360;
+      // console.log(`animation currentRotationTime: ${currentRotationTime}`);
+      console.log(`timer versus animation time diff: ${timerCurrentTime - currentTime}`);
+    }
+    
     this.currentTime = this._updateCurrentTime();
     clearTimeout(this._timeoutHandler);
     clearInterval(this.refreshRateTimer);
@@ -302,12 +329,6 @@ class ATimer extends HTMLElement {
   */
   _connectSlots() {
     this._animatableRotate = this._getElementFromSlot('#animatableRotateId');
-    if (this._animatableRotate) {
-      this._rotateAnimation = this._animatableRotate.animate(
-        { transform: [ 'rotate(0deg)', 'rotate(90deg)' ] }, 
-        { duration: 30000, iterations: 1 });
-      this._rotateAnimation.pause();
-    }
     
     this._playPauseEl = this._getElementFromSlot('#playPauseId');
     this._playEl = this._getElementFromSlot('#playId');
@@ -318,6 +339,8 @@ class ATimer extends HTMLElement {
     if (this._playEl) this._playEl.addEventListener('click', this._slotPlay.bind(this));
     if (this._pauseEl) this._pauseEl.addEventListener('click', this._slotPause.bind(this));
     if (this._resetEl) this._resetEl.addEventListener('click', this._slotReset.bind(this));    
+
+    this._updateAnimation();
   }
   _getElementFromSlot(querySelector) {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
@@ -341,7 +364,54 @@ class ATimer extends HTMLElement {
     this.resetProp = true;
     // this._rotateAnimation.playbackRate = 3;
   }
-  
+
+  _getCurrentRotation() {
+    // https://css-tricks.com/get-value-of-css-rotation-through-javascript/
+    var el = this._animatableRotate;
+    if (!el) return null;
+    var st = window.getComputedStyle(el, null);
+    var tr =  st.getPropertyValue("-webkit-transform") ||
+              st.getPropertyValue("-moz-transform") ||
+              st.getPropertyValue("-ms-transform") ||
+              st.getPropertyValue("-o-transform") ||
+              st.getPropertyValue("transform") ||
+              "Either no transform set, or browser doesn't do getComputedStyle";
+    
+    // rotate(Xdeg) = matrix(cos(X), sin(X), -sin(X), cos(X), 0, 0);
+    return matrixToDegrees(tr);          
+
+    function matrixToDegrees(tr) {
+      if (!tr || tr == 'none') return null;
+      // With rotate(30deg)...
+      // matrix(0.866025, 0.5, -0.5, 0.866025, 0px, 0px)
+      // console.log('Matrix: ' + tr);
+
+
+      // rotation matrix - http://en.wikipedia.org/wiki/Rotation_matrix
+
+      var values = tr.split('(')[1];
+          values = values.split(')')[0];
+          values = values.split(',');
+      var a = values[0];
+      var b = values[1];
+      var c = values[2];
+      var d = values[3];
+
+      var scale = Math.sqrt(a*a + b*b);
+
+      // arc sin, convert from radians to degrees, round
+      // DO NOT USE: see update below
+      var sin = b/scale;
+      // var angle = Math.round(Math.asin(sin) * (180/Math.PI));
+      var angle = Math.round(Math.atan2(b, a) * (180/Math.PI));
+
+      // works!
+      // console.log('Rotate: ' + angle + 'deg');
+      return angle;
+    }
+
+  }  
+
 }
 
 customElements.define('a-timer', ATimer);
