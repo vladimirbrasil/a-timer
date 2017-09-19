@@ -35,6 +35,7 @@
           |   this can be an optional enhancement for a default no-tick timer
     visual| Web animations
           | https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Using_the_Web_Animations_API
+          | http://callmenick.com/post/listen-for-css-animation-events-with-javascript
           | Can hook user animatable to the timer animation flow 
     Do not need to use polymer. 
     Should have an alertAlsoAt attribute?
@@ -64,18 +65,21 @@
       </template>
     </test-fixture>
 
-    <test-fixture id="WithSlotsTestFixture">
+    <test-fixture id="WithRotateSlotTestFixture">
       <template>
         <a-timer start-time="60">
           <div slot="animatableRotate" id="animatableRotateId" style="height: 1px; width: 100px; background-color: black;"></div>
-          <div slot="playPause">Play/Pause</div>    
-          <div slot="play">Play</div>    
-          <div slot="pause">Pause</div>    
-          <div slot="reset">Reset</div>                        
         </a-timer>
       </template>
     </test-fixture>
-
+    <test-fixture id="WithTranslateXSlotTestFixture">
+      <template>
+        <a-timer start-time="60">
+          <div slot="animatableTranslateX" id="animatableTranslateX" style="height: 1px; width: 100px; background-color: black;"></div>
+        </a-timer>
+      </template>
+    </test-fixture>
+  
     <script>
       describe( 'static', function() {
         let element;
@@ -367,7 +371,7 @@
         });
 
         it( 'should rotate in sync with time', function(done) {
-          element = fixture('WithSlotsTestFixture');
+          element = fixture('WithRotateSlotTestFixture');
           element.startTime = '60';
           const timeDivider = 36;
           const degreesPassed = 360 / timeDivider;
@@ -393,7 +397,7 @@
 
         beforeEach( function() {
           this.clock = sinon.useFakeTimers();
-          element = fixture('WithSlotsTestFixture');
+          element = fixture('WithRotateSlotTestFixture');
           element.startTime = 60;
           element.run = true;
         });

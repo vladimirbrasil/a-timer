@@ -18,11 +18,13 @@ Suit yourself.
 [[currentTime]]
 ```
 
-`<a-timer>` has slots. It can rotate-animate any rotate-animatable element passed to its `animatableRotate` slot.
-It can also handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
+`<a-timer>` has slots. It can handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
+It also can animate - in sync with timer - any animatable element passed to its `animatable` slot.
+Create your animation with keyframes and let the timer set its duration and playback in sync with it. 
+[For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/) 
 ```html
 <a-timer>
-  <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
+  <div slot="animatable" style="height: 1px; width: 100px; background-color: black;"></div>
   <div slot="playPause">Play/Pause</div>    
   <div slot="play">Play</div>    
   <div slot="pause">Pause</div>    
@@ -60,14 +62,31 @@ template.innerHTML = `
   <style>
     :host {
       display: block;
+      --start-color: green;
+      --alert-color: yellow;
+      --end-color: red;
+      --background-color: #ddd;
+      /* color: green; */
+    }
+    /* ::slotted(.foo) { */
+    ::slotted(*) {
+      padding: 0 !important;
+      margin: 0 !important;
+      color: var(--end-color) !important;
+      background: currentColor !important;
+    }
+    #clickableArea {
+      padding: 0;
+      overflow: hidden;
+      min-height: 10px;
+      min-width: 10px;
+      background: var(--background-color);
     }
   </style>
-  <slot id="animatableRotateId" name="animatableRotate"></slot>
-  </br>
-  <slot id="playPauseId" name="playPause"></slot>
-  <slot id="playId" name="play"></slot>
-  <slot id="pauseId" name="pause"></slot>
-  <slot id="resetId" name="reset"></slot>
+  <div id="clickableArea">  
+    <slot id="animatableTranslateXId" name="animatableTranslateX"></slot>
+    <slot id="animatableRotateId" name="animatableRotate"></slot>
+  </div>
 `;
 
 // const io = new IntersectionObserver(entries => {
@@ -107,6 +126,8 @@ class ATimer extends HTMLElement {
       this.setAttribute('current-time', this.startTime);
     this.removeAttribute('run');
     this.removeAttribute('resetProp');
+    this.shadowRoot.querySelector('#clickableArea').addEventListener('click', this._animationClick.bind(this));
+    
   }
 
   disconnectedCallback() {
@@ -120,21 +141,10 @@ class ATimer extends HTMLElement {
     if (value <= this.currentTime) this.currentTime = value;
     const valueOrDefault = value || 30;
     this.setAttribute('start-time', valueOrDefault);
-    this._updateAnimation();
+    this._setAnimation();
   }
   get startTime() {
     return this.getAttribute('start-time');
-  }
-
-  _updateAnimation() {
-    if (this._animatableRotate) {
-      const duration = parseFloat(this.startTime) * 1000 || 30000;
-      console.log(this.startTime)
-      this._rotateAnimation = this._animatableRotate.animate(
-        { transform: [ 'rotate(0deg)', 'rotate(360deg)' ] }, 
-        { duration: duration, iterations: 1 });
-      this._rotateAnimation.pause();
-    }    
   }
 
   /**
@@ -271,7 +281,9 @@ class ATimer extends HTMLElement {
   }
 
   _start() {
-    if (this._rotateAnimation) this._rotateAnimation.play();
+    // if (this._rotateAnimation) this._rotateAnimation.play();
+    // if (this._animatable && this._animatable.style.animationPlayState != 'running') this._animatable.style.animationPlayState = 'running';    
+    if (this._animation) this._animation.play();    
     
     if (this.finished) this.finished = false;
     clearTimeout(this._timeoutHandler);
@@ -293,54 +305,155 @@ class ATimer extends HTMLElement {
   }
   
   _stop() {
-    if (this._rotateAnimation) this._rotateAnimation.pause();
-    if (this._rotateAnimation) {
-      const currentTime = parseFloat(this.currentTime);
-      //TODO: [when stopped, ] currentTime returns actually lastCurrentTime.
-      const animCurrentTime = this._rotateAnimation.currentTime / 1000;
-      console.log(`animation currentTime: ${this.startTime - animCurrentTime}`);
-      const currentRotation = this._getCurrentRotation();
-      const currentRotation360 = currentRotation > 0 ? currentRotation : (360 + currentRotation);
-      console.log(`animation currentRotation: ${currentRotation360}`);
-      // console.log(`timer versus animation time diff: ${currentTime - animCurrentTime}`);
-    }
+    // if (this._rotateAnimation) this._rotateAnimation.pause();
+    // if (this._animatable && this._animatable.style.animationPlayState != 'paused') this._animatable.style.animationPlayState = 'paused';    
+    if (this._animatable) this._logAnimationPerformance();
+    if (this._animation) this._animation.pause();    
     
     this.currentTime = this._updateCurrentTime();
     clearTimeout(this._timeoutHandler);
     clearInterval(this.refreshRateTimer);
   }
 
+  _logAnimationPerformance() {
+    if (this._animatableRotate) {
+      this.currentTime;
+      //TODO: [when stopped, ] currentTime returns actually lastCurrentTime.
+      const currentRotation360 = this._getCurrentRotation();
+      const animCurrentTime = this.startTime * (currentRotation360/360);
+      // const animCurrentTime = this._rotateAnimation.currentTime / 1000;
+      console.log(`animation currentTime: ${this.startTime - animCurrentTime}`);
+      console.log(`animation currentRotation: ${currentRotation360}`);
+      // console.log(`timer versus animation time diff: ${currentTime - animCurrentTime}`);
+    }
+  }
+
   _reset() {
-    if (this._rotateAnimation) this._rotateAnimation.cancel();
+    // if (this._rotateAnimation) this._rotateAnimation.cancel();
+
+    if (this._animatable) {
+      this._resetAnimation();
+    };
     
     this.run = false; //User's taste: resets and stops; or only resets.
     this.currentTime = this.startTime;
   }
 
   
+  /**
+  * Animation
+  */
+  _setAnimation() {
+    if (!this._animatableTranslateX && !this._animatableRotate) return;
+    this._resetAnimation();
 
+    let transforms = null;
+
+    if (this._animatableTranslateX) {
+      this._animatable = this._animatableTranslateX;
+      transforms = {start: 'translateX(-100%)', end: 'translateX(0)'};
+    } else if (this._animatableRotate) {
+      this._animatable = this._animatableRotate;
+      transforms = {start: 'rotate(0deg)', end: 'rotate(360deg)'};
+    } else {
+      this._animatable = null;
+      return;
+    }
+
+    if (!transforms) return;
+    var animationTransformation = [
+      { transform: transforms.start, color: 'var(--start-color)' },
+      { color: 'var(--alert-color)', offset: 0.6667},
+      { transform: transforms.end, color: 'var(--end-color)' }
+    ];
+    var animationDuration = {
+      duration: this.startTime * 1000,
+      iterations: 1,
+    }
+  
+    const animatable = this._animatable;
+
+    const animation = animatable.animate(
+      animationTransformation, 
+      animationDuration,
+    );
+    // https://www.polymer-project.org/2.0/docs/devguide/gesture-events
+    // animation.onstart = this._animationStart.bind(this);
+    animation.pause();
+    animation.onfinish = this._animationEnd.bind(this);
+    animation.oncancel = this._animationCancel.bind(this);
+
+    this._animation = animation;
+  }
+
+  _animationClick(e) {
+    console.log(e)    
+    console.log('animation clicked');
+    this.run = !this.run;
+    // this._animatable.animationPlayState = "paused";
+  }
+  
+  _animationEnd(e) {
+    console.log(e)    
+    console.log('animation ended');
+    this._animatable.animationPlayState = "paused";
+  }
+  
+  _animationCancel(e) {
+    console.log(e)    
+    console.log('animation cancelled');
+    // this._animatable.animationPlayState = "paused";
+  }
+  
+  _animationStart(e) {
+    console.log(e)    
+    console.log('animation started');
+  }
+
+  _resetAnimation() {
+    if (!this._animation) return;
+    this._animation.cancel();
+
+    // // https://css-tricks.com/restart-css-animation/
+    // const element = this._animatable;
+    // element.classList.remove("animation");
+    // void element.offsetWidth;
+    // element.classList.add("animation");
+    // console.log(element.classList)
+    // return;
+
+    // console.log(this._animatable);
+    // if (!this._animatable) return;
+    
+    // // https://css-tricks.com/restart-css-animation/
+    // var elm = this._animatable;
+    // var newone = elm.cloneNode(true);
+    // elm.parentNode.replaceChild(newone, elm);
+    // this._animatable = newone;      
+    // this._animatable.addEventListener('webkitAnimationEnd', this._animationEnd.bind(this));
+    // this._animatable.addEventListener('webkitAnimationStart', this._animationStart.bind(this));
+
+    // console.log(`animation: ${this._animatable.style.animation}`)
+    // console.log(this._animatable.style)
+    // this._animatable.style.animation = '';
+
+  }
+
+
+  
 
   /**
   * Slots
   */
   _connectSlots() {
+    this._animatableTranslateX = this._getElementFromSlot('#animatableTranslateXId');
     this._animatableRotate = this._getElementFromSlot('#animatableRotateId');
-    
-    this._playPauseEl = this._getElementFromSlot('#playPauseId');
-    this._playEl = this._getElementFromSlot('#playId');
-    this._pauseEl = this._getElementFromSlot('#pauseId');
-    this._resetEl = this._getElementFromSlot('#resetId');
-
-    if (this._playPauseEl) this._playPauseEl.addEventListener('click', this._slotPlayPause.bind(this));
-    if (this._playEl) this._playEl.addEventListener('click', this._slotPlay.bind(this));
-    if (this._pauseEl) this._pauseEl.addEventListener('click', this._slotPause.bind(this));
-    if (this._resetEl) this._resetEl.addEventListener('click', this._slotReset.bind(this));    
-
-    this._updateAnimation();
+    this._setAnimation();
   }
   _getElementFromSlot(querySelector) {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);
+    if (!slotElement) return;
     const actualElement = slotElement.assignedNodes({flatten: true})
       .find(n => n != null);
     // console.log(actualElement);
@@ -374,7 +487,10 @@ class ATimer extends HTMLElement {
               "Either no transform set, or browser doesn't do getComputedStyle";
     
     // rotate(Xdeg) = matrix(cos(X), sin(X), -sin(X), cos(X), 0, 0);
-    return matrixToDegrees(tr);          
+    const currentRotation = matrixToDegrees(tr);
+    const currentRotation360 = currentRotation > 0 ? currentRotation : (360 + currentRotation);
+  
+    return currentRotation360;          
 
     function matrixToDegrees(tr) {
       if (!tr || tr == 'none') return null;

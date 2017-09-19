@@ -7,6 +7,7 @@
 ## Description
 
 `<a-timer>` is a countdown timer. It is capable to be driven by attributes only, as you wish.
+`<a-timer>` accepts slots for playback control and slots to animate in sync with timer.
 
 <!---
 ```
@@ -23,7 +24,7 @@
 -->
 ```html
 <a-timer start-time="60" run="true">
-  <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
+  <div slot="animatable" style="height: 1px; width: 100px; background-color: black;"></div>
   <div slot="playPause">Play/Pause</div>    
   <div slot="play">Play</div>    
   <div slot="pause">Pause</div>    
@@ -50,11 +51,13 @@ Suit yourself.
 [[currentTime]]
 ```
 
-`<a-timer>` has slots. It can rotate-animate any rotate-animatable element passed to its `animatableRotate` slot.
-It can also handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
+`<a-timer>` has slots. It can handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
+It also can animate - in sync with timer - any animatable element passed to its `animatable` slot.
+Create your animation with keyframes and let the timer set its duration and playback in sync with it. 
+[For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/) 
 ```html
 <a-timer>
-  <div slot="animatableRotate" style="height: 1px; width: 100px; background-color: black;"></div>
+  <div slot="animatable" style="height: 1px; width: 100px; background-color: black;"></div>
   <div slot="playPause">Play/Pause</div>    
   <div slot="play">Play</div>    
   <div slot="pause">Pause</div>    
