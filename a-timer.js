@@ -23,7 +23,7 @@ In the future it should be possible to let you freely create your animation with
 [For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
 ```html
 <a-timer>
-  <div slot="animatableTranslateX" style="height: 20px; width: 100%; border-radius: 4px;">
+  <div slot="animatableTranslateX" style="height: 20px; width: 100%;">
 </a-timer>
 ```
 

@@ -7,7 +7,7 @@
 ## Description
 
 `<a-timer>` is a countdown timer. It is capable to be driven by attributes only, as you wish.
-`<a-timer>` accepts slots for playback control and slots to animate in sync with timer.
+`<a-timer>` accepts slots to animate in sync with timer.
 
 <!---
 ```
@@ -24,7 +24,7 @@
 -->
 ```html
 <a-timer start-time="60" run="true">
-  <div slot="animatableTranslateX" style="height: 20px; width: 100%; border-radius: 4px;">  
+  <div slot="animatableTranslateX" style="height: 20px; width: 100%;">  
 </a-timer>
 ```
 
@@ -52,7 +52,7 @@ In the future it should be possible to let you freely create your animation with
 [For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
 ```html
 <a-timer>
-  <div slot="animatableTranslateX" style="height: 20px; width: 100%; border-radius: 4px;">
+  <div slot="animatableTranslateX" style="height: 20px; width: 100%;">
 </a-timer>
 ```
 
