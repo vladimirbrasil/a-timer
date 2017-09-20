@@ -24,11 +24,7 @@
 -->
 ```html
 <a-timer start-time="60" run="true">
-  <div slot="animatable" style="height: 1px; width: 100px; background-color: black;"></div>
-  <div slot="playPause">Play/Pause</div>    
-  <div slot="play">Play</div>    
-  <div slot="pause">Pause</div>    
-  <div slot="reset">Reset</div>    
+  <div slot="animatableTranslateX" style="height: 20px; width: 100%; border-radius: 4px;">  
 </a-timer>
 ```
 
@@ -51,17 +47,12 @@ Suit yourself.
 [[currentTime]]
 ```
 
-`<a-timer>` has slots. It can handle click events to its 'playPause', 'play', 'pause', 'reset' slots.
-It also can animate - in sync with timer - any animatable element passed to its `animatable` slot.
-Create your animation with keyframes and let the timer set its duration and playback in sync with it. 
-[For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/) 
+`<a-timer>` has slots. It can animate, in sync with timer, some animatable elements passed to it. For now, you can pass elements to its `animatableTranslateX` or `animatableRotate` slots.
+In the future it should be possible to let you freely create your animation with keyframes and let the timer set only its duration and playback in sync with the timer. This is not ready yet, unfotunately. 
+[For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
 ```html
 <a-timer>
-  <div slot="animatable" style="height: 1px; width: 100px; background-color: black;"></div>
-  <div slot="playPause">Play/Pause</div>    
-  <div slot="play">Play</div>    
-  <div slot="pause">Pause</div>    
-  <div slot="reset">Reset</div>    
+  <div slot="animatableTranslateX" style="height: 20px; width: 100%; border-radius: 4px;">
 </a-timer>
 ```
 

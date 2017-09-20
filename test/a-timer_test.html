@@ -346,7 +346,7 @@
 
       }); 
       
-      describe( 'real time', function() {
+      describe.skip( 'real time', function() {
         let element;
 
         afterEach( function() {
@@ -354,7 +354,7 @@
           element = null;
         });
         
-        it.skip( 'should finish (real time test)', function(done) {
+        it( 'should finish (real time test)', function(done) {
           element = fixture('BasicTestFixture');
           element.startTime = '1';
           element.run = true;
