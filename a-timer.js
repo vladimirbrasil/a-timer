@@ -61,17 +61,14 @@ template.innerHTML = `
       --alert-color: yellow;
       --end-color: red;
       --background-color: #ddd;
-      /* color: green; */
     }
     /* ::slotted(.foo) { */
     ::slotted(*) {
-      padding: 0 !important;
       margin: 0 !important;
-      color: var(--end-color) !important;
-      background: currentColor !important;
+      color: var(--end-color);
+      background-color: currentColor !important;
     }
     #clickableArea {
-      padding: 0;
       overflow: hidden;
       min-height: 10px;
       min-width: 10px;
@@ -94,7 +91,7 @@ template.innerHTML = `
 
 class ATimer extends HTMLElement {
   static get observedAttributes() {
-    return ['start-time', 'current-time', 'run', 'resetProp', 'finished'];
+    return ['start-time', 'current-time', 'refresh-rate', 'run', 'resetProp', 'finished'];
   }
 
   constructor() {

@@ -18,8 +18,7 @@
     "polymer": "^2.0.0"
   },
   "demos": {
-    "Visual demo": "demo/index.html",
-    "No-visual demo": "demo/no-visual.html" 
+    "Demos": "demo/index.html"
   },
   "homepage": "https://github.com/vladimirbrasil/a-timer",
   "license": "MIT"

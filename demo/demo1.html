@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>a-timer demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <script src="../a-timer.js"></script>
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        div {
+          margin: 10px 0;
+        }
+        .rotate-example {
+          background: #000;
+          height: 50px;
+          width: 1px;
+          left: 50px;
+          position: relative;
+          transform-origin: 50% 100%;   
+          /* animation: my-fancy-animation 10s 1 linear;      */
+        }
+        .bar-example {
+              border-radius: 4px;
+              box-shadow: inset 0 0.5em 0.5em rgba(0,0,0,0.05);
+              height: 20px;
+              margin: 10px;
+              overflow: hidden;
+              position: relative;
+              transform: translateZ(0);
+              width: 100%;
+        }        
+        /* @keyframes my-fancy-animation {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          } 
+        }         */
+
+
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic a-timer demo</h3>
+      <demo-snippet>
+        <p>Progress bar timer example</p>
+        <template>
+          <style>
+            .bar-example {
+              border-radius: 4px;
+              box-shadow: inset 0 0.5em 0.5em rgba(0,0,0,0.05);
+              height: 20px;
+              margin: 10px;
+              overflow: hidden;
+              position: relative;
+              transform: translateZ(0);
+              width: 100%;
+            }        
+          </style>
+          <a-timer start-time="3">
+            <div slot="animatableTranslateX" class="bar-example"></div>
+          </a-timer>
+        </template>
+      </demo-snippet>
+
+      <demo-snippet>
+        <p>Rotate timer example</p>
+        <template>
+          <style>
+            .rotate-example {
+              background: #000;
+              height: 50px;
+              width: 1px;
+              left: 50px;
+              position: relative;
+              transform-origin: 50% 100%;   
+            }          
+          </style>
+          <a-timer start-time="3">
+            <div slot="animatableRotate" class="rotate-example"></div>
+          </a-timer>
+        </template>
+      </demo-snippet>    
+      
+      <demo-snippet>
+        <p>Alert on finish and hook buttons example</p>
+        <template>
+          <a-timer id="timer" start-time="3">
+            <div slot="animatableTranslateX" class="bar-example"></div>
+          </a-timer>
+          <div>
+            <button id="start">Start</button>
+            <button id="stop">Stop</button>            
+          </div>
+          <script>
+            const timerElement = document.querySelector('#timer');
+            const startButton = document.querySelector('#start');
+            const stopButton = document.querySelector('#stop');
+            startButton.addEventListener('click', startTimer);
+            stopButton.addEventListener('click', stopTimer);
+            function startTimer() {
+              timerElement.start();
+              // Instead of a method call, 
+              // you can set the run attribute if you prefer.
+              // timerElement.run = true;
+            }
+            function stopTimer() {
+              timerElement.stop();
+              // Instead of a method call, 
+              // you can set the run attribute if you prefer.
+              // timerElement.run = false;
+            }
+
+            timerElement.addEventListener('finish', finished);
+            function finished() {
+              alert('finished  \\o/');
+            }
+          </script>
+        </template>
+      </demo-snippet>
+
+    </div>
+  </body>
+</html>

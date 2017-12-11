@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>a-timer no-visual demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../polymer/polymer.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <script src="../a-timer.js"></script>
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        div {
+          margin: 10px 0;
+        }
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Updates elapsed time demo</h3>
+
+      <demo-snippet>
+        <p>Elapsed time timer example</p>
+        <p>"current-time" attribute is updated every 1000ms.</p>
+        <template>
+            <style>
+              a-timer {
+                display: none;
+              }
+            </style>
+
+            <a-timer 
+              id="timer"
+              refresh-rate="1000"
+              start-time="30" >
+            </a-timer>
+          
+            <div>
+              <button id="start">Start</button>
+              <button id="stop">Stop</button>            
+            </div>
+            <script>
+              const timerElement = document.querySelector('#timer');
+              const startButton = document.querySelector('#start');
+              const stopButton = document.querySelector('#stop');
+              startButton.addEventListener('click', startTimer);
+              stopButton.addEventListener('click', stopTimer);
+              function startTimer() {
+                timerElement.start();
+                // Instead of a method call, 
+                // you can set the run attribute if you prefer.
+                // timerElement.run = true;
+              }
+              function stopTimer() {
+                timerElement.stop();
+                // Instead of a method call, 
+                // you can set the run attribute if you prefer.
+                // timerElement.run = false;
+              }
+  
+              timerElement.addEventListener('finish', finished);
+              function finished() {
+                alert('finished  \\o/');
+              }
+            </script>
+          </template>
+        </demo-snippet>                 
+  
+        </div>
+      </body>
+    </html>
+  
