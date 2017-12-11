@@ -382,8 +382,8 @@ class ATimer extends HTMLElement {
   }
 
   _animationClick(e) {
-    console.log(e)    
-    console.log('animation clicked');
+    // console.log(e)    
+    // console.log('animation clicked');
     this.run = !this.run;
     // this._animatable.animationPlayState = "paused";
   }
