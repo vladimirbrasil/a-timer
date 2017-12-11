@@ -14,7 +14,10 @@
 
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
-        #animatableRotateId {
+        div {
+          margin: 10px 0;
+        }
+        .rotate-example {
           background: #000;
           height: 50px;
           width: 1px;
@@ -22,7 +25,17 @@
           position: relative;
           transform-origin: 50% 100%;   
           /* animation: my-fancy-animation 10s 1 linear;      */
-        }      
+        }
+        .bar-example {
+              border-radius: 4px;
+              box-shadow: inset 0 0.5em 0.5em rgba(0,0,0,0.05);
+              height: 20px;
+              margin: 10px;
+              overflow: hidden;
+              position: relative;
+              transform: translateZ(0);
+              width: 100%;
+        }        
         /* @keyframes my-fancy-animation {
           0% {
             transform: rotate(0deg);
@@ -40,13 +53,100 @@
     <div class="vertical-section-container centered">
       <h3>Basic a-timer demo</h3>
       <demo-snippet>
+        <p>Progress bar timer example</p>
         <template>
+          <style>
+            .bar-example {
+              border-radius: 4px;
+              box-shadow: inset 0 0.5em 0.5em rgba(0,0,0,0.05);
+              height: 20px;
+              margin: 10px;
+              overflow: hidden;
+              position: relative;
+              transform: translateZ(0);
+              width: 100%;
+            }        
+          </style>
+          <a-timer start-time="3">
+            <div slot="animatableTranslateX" class="bar-example"></div>
+          </a-timer>
+        </template>
+      </demo-snippet>
 
-          <a-timer start-time="10">
+      <demo-snippet>
+        <p>Rotate timer example</p>
+        <template>
+          <style>
+            .rotate-example {
+              background: #000;
+              height: 50px;
+              width: 1px;
+              left: 50px;
+              position: relative;
+              transform-origin: 50% 100%;   
+            }          
+          </style>
+          <a-timer start-time="3">
+            <div slot="animatableRotate" class="rotate-example"></div>
+          </a-timer>
+        </template>
+      </demo-snippet>
+      
+      <demo-snippet>
+        <p>Alert on finish and hook buttons example</p>
+        <template>
+          <a-timer id="timer" start-time="3">
+            <div slot="animatableTranslateX" class="bar-example"></div>
+          </a-timer>
+          <div>
+            <button id="start">Start</button>
+            <button id="stop">Stop</button>            
+          </div>
+          <script>
+            const timerElement = document.querySelector('#timer');
+            const startButton = document.querySelector('#start');
+            const stopButton = document.querySelector('#stop');
+            startButton.addEventListener('click', startTimer);
+            stopButton.addEventListener('click', stopTimer);
+            function startTimer() {
+              timerElement.start();
+              // Instead of a method call, 
+              // you can set the run attribute if you prefer.
+              // timerElement.run = true;
+            }
+            function stopTimer() {
+              timerElement.stop();
+              // Instead of a method call, 
+              // you can set the run attribute if you prefer.
+              // timerElement.run = false;
+            }
+
+            timerElement.addEventListener('finish', finished);
+            function finished() {
+              alert('finished  \\o/');
+            }
+          </script>
+        </template>
+      </demo-snippet>
+
+      <demo-snippet>
+        <p>Alert on finish example</p>
+        <template>
+          <a-timer id="timer2" start-time="3">
+            <div slot="animatableTranslateX" class="bar-example"></div>
+          </a-timer>
+          <script>
+          </script>
+        </template>
+      </demo-snippet>
+
+      <demo-snippet>
+        <template>
+          <a-timer start-time="3" on-finish="finished">
+            <!-- <div slot="animatableTranslateX" class="progress-bar" style="height: 20px; width: 100%; border-radius: 4px;"> -->
             <div slot="animatableTranslateX" class="progress-bar" style="height: 20px; width: 100%; border-radius: 4px;">
             <!-- <div slot="animatableRotate" id="animatableRotateId"></div> -->
           </a-timer>
-
         </template>
       </demo-snippet>
     </div>
