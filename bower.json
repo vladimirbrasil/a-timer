@@ -18,5 +18,5 @@
     "polymer": "^2.0.0"
   },
   "homepage": "https://github.com/vladimirbrasil/a-timer",
-  "license": "Apache-2.0"
+  "license": "MIT"
 }
