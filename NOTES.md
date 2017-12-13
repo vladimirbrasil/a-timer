@@ -22,6 +22,8 @@ On december 3<sup>rd</sup>, 2017.
 | Chrome      	|       	    	|
 | Firefox 		  |       		    |
 | Edge 		      |       		    |
+| iOS 		      |       		    |
+| Android 		  |       		    |
 
 [Choose browsers to test on sauce](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/) and add them to  **wct.conf.json**
 

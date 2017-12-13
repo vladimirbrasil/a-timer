@@ -90,6 +90,12 @@ Or use the `reset` method.
 this.$.myTimer.reset();
 ```
 
+### Big Thanks
+
+![Logo](images/Sauce-Labs_Horiz_Red-Grey_RGB.png)
+
+Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs](https://saucelabs.com)
+
 ## Contributing
 
 1. Fork it!
