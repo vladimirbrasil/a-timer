@@ -240,6 +240,22 @@ class ATimer extends HTMLElement {
   }
 
   /**
+  * Sinalizes if slot has animations.
+  */
+  set hasAnimations(value) {
+    if (this._animatedElements && this._animatedElements.length > 0) {
+      this.setAttribute('has-animations', '');
+    } else {
+      this.removeAttribute('has-animations');
+    }
+  }
+  get hasAnimations() {
+    return this.hasAttribute('has-animations');
+  }
+
+
+
+  /**
   * Starts the timer.
   */
   start() {
@@ -261,7 +277,7 @@ class ATimer extends HTMLElement {
   }
 
   _start() {
-    if(this._hasAnimations) this._startCssAnimations();
+    if(this.hasAnimations) this._startCssAnimations();
 
     if (this.finished) this.finished = false;
     clearTimeout(this._timeoutHandler);
@@ -285,7 +301,7 @@ class ATimer extends HTMLElement {
   }
 
   _stop() {
-    if(this._hasAnimations) this._pauseCssAnimations();
+    if(this.hasAnimations) this._pauseCssAnimations();
 
     this.currentTime = this._updateCurrentTime();
     clearTimeout(this._timeoutHandler);
@@ -293,7 +309,7 @@ class ATimer extends HTMLElement {
   }
 
   _reset() {
-    if (this._hasAnimations) this._restartCssAnimations();
+    if (this.hasAnimations) this._restartCssAnimations();
 
     this.run = false; // User's taste: resets and stops; or only resets.
     this.currentTime = this.startTime;
@@ -315,10 +331,14 @@ class ATimer extends HTMLElement {
     // http://jsfiddle.net/leaverou/xK6sa/2/
     // restart animation
     var me = animatedEl;
+    // const memAnimation = animatedEl.style.webkitAnimation;
+    // console.log(`memAnimation: ${memAnimation}`);
     animatedEl.style.webkitAnimation = 'none';
     setTimeout(() => {
-        me.style.webkitAnimation = '';
-        this._setElementCssAnimation(me);
+      this._setStyle(me, 'animation', '-webkit-animation', '');
+      // this._setStyle(me, 'animation', '-webkit-animation', memAnimation);
+      // me.style.webkitAnimation = memAnimation;
+      this._setElementCssAnimation(me);
     }, 10);
 
 
@@ -334,9 +354,12 @@ class ATimer extends HTMLElement {
 
   _setElementCssAnimation(animatedEl) {
     // animatedEl.style["-webkit-animation-name"] = 'rota';
-    animatedEl.style["-webkit-animation-play-state"] = 'paused';
-    animatedEl.style["-webkit-animation-iteration-count"] = `1`;
-    animatedEl.style["-webkit-animation-duration"] = `${this.startTime}s`;
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');
+    this._setStyle(animatedEl, 'animationIterationCount', '-webkit-animation-iteration-count', '1');
+    this._setStyle(animatedEl, 'animationDuration', '-webkit-animation-duration', `${this.startTime}s`);
+    // animatedEl.style["-webkit-animation-play-state"] = 'paused';
+    // animatedEl.style["-webkit-animation-iteration-count"] = `1`;
+    // animatedEl.style["-webkit-animation-duration"] = `${this.startTime}s`;
     // console.log('animatedEl: ', animatedEl);
     // console.log(animatedEl.style["-webkit-animation-name"]);
     // console.log(animatedEl.style["-webkit-animation-iteration-count"]);
@@ -366,7 +389,7 @@ class ATimer extends HTMLElement {
   }
 
   _cssAnimationEnded(e) {
-    console.log('css animations event handler', e.detail);
+    console.log('css animations ended event', e);
     // console.log(animatedEl.style["-webkit-animation-play-state"]);
     // this._pauseCssAnimations();
     // console.log(animatedEl.style["-webkit-animation-play-state"]);
@@ -388,63 +411,14 @@ class ATimer extends HTMLElement {
   }
 
   _startElementCssAnimation(animatedEl) {
-    animatedEl.style['-webkit-animation-play-state'] = 'running';
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'running');    
+    // animatedEl.style['-webkit-animation-play-state'] = 'running';
   }
-
+  
   _pauseElementCssAnimation(animatedEl) {
-    animatedEl.style['-webkit-animation-play-state'] = 'paused';
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');    
+    // animatedEl.style['-webkit-animation-play-state'] = 'paused';
   }
-
-  // _setCssAnimations() {
-  //   if (!this._animatable) return;
-  //   // this._resetAnimation();
-
-  //   if (!this._animatedElements) return;
-  //   this._animatedElements.forEach(animatedEl => {
-  //     this._setElementCssAnimation(animatedEl);
-  //   })
-
-  //   return;
-
-  //   // let transforms = null;
-
-
-  //   // if (this._animatableTranslateX) {
-  //   //   this._animatable = this._animatableTranslateX;
-  //   //   transforms = {start: 'translateX(-100%)', end: 'translateX(0)'};
-  //   // } else if (this._animatableRotate) {
-  //   //   this._animatable = this._animatableRotate;
-  //   //   transforms = {start: 'rotate(0deg)', end: 'rotate(360deg)'};
-  //   // } else {
-  //   //   this._animatable = null;
-  //   //   return;
-  //   // }
-
-  //   // if (!transforms) return;
-  //   // var animationTransformation = [
-  //   //   { transform: transforms.start, color: 'var(--start-color)' },
-  //   //   { color: 'var(--alert-color)', offset: 0.6667},
-  //   //   { transform: transforms.end, color: 'var(--end-color)' }
-  //   // ];
-  //   // var animationDuration = {
-  //   //   duration: this.startTime * 1000,
-  //   //   iterations: 1,
-  //   // }
-
-  //   // const animatable = this._animatable;
-
-  //   // const animation = animatable.animate(
-  //   //   animationTransformation,
-  //   //   animationDuration,
-  //   // );
-  //   // // https://www.polymer-project.org/2.0/docs/devguide/gesture-events
-  //   // // animation.onstart = this._animationStart.bind(this);
-  //   // animation.pause();
-  //   // animation.onfinish = this._animationEnd.bind(this);
-  //   // animation.oncancel = this._animationCancel.bind(this);
-
-  //   // this._animation = animation;
-  // }
 
   _clickableAreaClicked(e) {
     // console.log(e)
@@ -462,44 +436,33 @@ class ATimer extends HTMLElement {
   _connectSlots() {
     this._animatable = this._getElementFromSlot('#animatable');
     if (!this._animatable) return;
-
+    // console.log(`this._animatable: ${this._animatable}`);
+    
     var allElements = Array.from(this._animatable.getElementsByTagName('*'));
+    allElements.push(this._animatable); // We must not forget the parent itself
+    // console.log(`allElements: ${allElements}`);
     let animatedElements = [];
     for (var i=0, max=allElements.length; i < max; i++) {
       const el = allElements[i];
-      const animationName = getStyle(el, 'animationName', '-webkit-animation-name');
+      const animationName = this._getStyle(el, 'animationName', '-webkit-animation-name');
       // const animationDuration = getStyle(el, "animationDuration", "-webkit-animation-duration");
       // console.log(animationDuration)
-      // console.log(animationName);
+      // console.log(`animationName: ${animationName}`);
       if (animationName != 'none') animatedElements.push(el);
     }
     this._animatedElements = animatedElements;
     // console.log('animated elements: ', animatedElements);
-    if (this._animatedElements.length > 0) {
-      this.setAttribute('has-animations', true);
-    } else {
-      this.removeAttribute('has-animations');
-    }
-    this._hasAnimations = this.getAttribute('has-animations');
-    // console.log(this._hasAnimations);
-    if (this._hasAnimations) this._restartCssAnimations();
+    this.hasAnimations = 'anyvalue-it-will-detect-internally';
+    // if (this._animatedElements.length > 0) {
+    // } else {
+    //   this.removeAttribute('has-animations');
+    // }
+    // this.hasAnimations = this.getAttribute('has-animations');
+    // console.log(this.hasAnimations);
+    if (this.hasAnimations) this._restartCssAnimations();
     return;
-
-    function getStyle(elem, cssprop, cssprop2) {
-      // IE
-      if (elem.currentStyle) {
-        return elem.currentStyle[cssprop];
-
-      // other browsers
-      } else if (document.defaultView && document.defaultView.getComputedStyle) {
-        return document.defaultView.getComputedStyle(elem, null).getPropertyValue(cssprop2);
-
-      // fallback
-      } else {
-        return null;
-      }
-    }
   }
+  
   _getElementFromSlot(querySelector) {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);
@@ -508,6 +471,37 @@ class ATimer extends HTMLElement {
       .find((n) => n != null);
     // console.log(actualElement);
     return actualElement;
+  }
+
+  _getStyle(elem, cssprop, cssprop2) {
+    // IE
+    if (elem.currentStyle) {
+      return elem.currentStyle[cssprop];
+
+    // other browsers
+    } else if (document.defaultView && document.defaultView.getComputedStyle) {
+      return document.defaultView.getComputedStyle(elem, null).getPropertyValue(cssprop2);
+
+    // fallback
+    } else {
+      return null;
+    }
+  }
+  _setStyle(elem, cssprop, cssprop2, value) {
+    // IE
+    if (elem.currentStyle) {
+      elem.currentStyle[cssprop] = value;
+      return;
+
+    // other browsers
+    } else if (document.defaultView && document.defaultView.getComputedStyle) {
+      elem.style.setProperty(cssprop2, value);
+      return;
+
+    // fallback
+    } else {
+      return null;
+    }
   }
 
 }
