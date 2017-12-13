@@ -5,8 +5,8 @@
 <a-timer start-time="30"></a-timer>
 ```
 
-You can observe changes to the `[[finished]]` attribute or to the `finish` event. 
-Suit yourself. 
+You can observe changes to the `[[finished]]` attribute or to the `finish` event.
+Suit yourself.
 ```html
 <a-timer finished="{{finished}}"></a-timer>
 <a-timer on-finish="timerFinished"></a-timer>
@@ -19,7 +19,7 @@ Suit yourself.
 ```
 
 `<a-timer>` has slots. It can animate, in sync with timer, some animatable elements passed to it. For now, you can pass elements to its `animatableTranslateX` or `animatableRotate` slots.
-In the future it should be possible to let you freely create your animation with keyframes and let the timer set only its duration and playback in sync with the timer. This is not ready yet, unfotunately. 
+In the future it should be possible to let you freely create your animation with keyframes and let the timer set only its duration and playback in sync with the timer. This is not ready yet, unfotunately.
 [For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
 ```html
 <a-timer>
@@ -27,7 +27,7 @@ In the future it should be possible to let you freely create your animation with
 </a-timer>
 ```
 
-It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically. 
+It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically.
 By default `current-time` is updated only on finish and whenever you ask for its value.
 ```html
 <a-timer refresh-rate="200" current-time="{{currentTime}}"></a-timer>
@@ -57,27 +57,10 @@ template.innerHTML = `
   <style>
     :host {
       display: block;
-      --start-color: green;
-      --alert-color: yellow;
-      --end-color: red;
-      --background-color: #ddd;
-    }
-    /* ::slotted(.foo) { */
-    ::slotted(*) {
-      margin: 0 !important;
-      color: var(--end-color);
-      background-color: currentColor !important;
-    }
-    #clickableArea {
-      overflow: hidden;
-      min-height: 10px;
-      min-width: 10px;
-      background: var(--background-color);
     }
   </style>
   <div id="clickableArea">  
-    <slot id="animatableTranslateXId" name="animatableTranslateX"></slot>
-    <slot id="animatableRotateId" name="animatableRotate"></slot>
+    <slot id="animatable" name="animatable"></slot>
   </div>
 `;
 
@@ -118,8 +101,7 @@ class ATimer extends HTMLElement {
       this.setAttribute('current-time', this.startTime);
     this.removeAttribute('run');
     this.removeAttribute('resetProp');
-    this.shadowRoot.querySelector('#clickableArea').addEventListener('click', this._animationClick.bind(this));
-    
+    this.shadowRoot.querySelector('#clickableArea').addEventListener('click', this._clickableAreaClicked.bind(this));
   }
 
   disconnectedCallback() {
@@ -132,8 +114,10 @@ class ATimer extends HTMLElement {
   set startTime(value) {
     if (value <= this.currentTime) this.currentTime = value;
     const valueOrDefault = value || 30;
+    this.run = false;
+    this.setAttribute('current-time', valueOrDefault);
     this.setAttribute('start-time', valueOrDefault);
-    this._setAnimation();
+    this._restartCssAnimations();
   }
   get startTime() {
     return this.getAttribute('start-time');
@@ -164,7 +148,7 @@ class ATimer extends HTMLElement {
     const now = this._now;
     this.timeoutPeriod = this.currentTime*1000;
     this._dateAhead = now + this.timeoutPeriod;
-    // console.log(this.currentTime, now/1000, this._dateAhead/1000);    
+    // console.log(this.currentTime, now/1000, this._dateAhead/1000);
   }
 
   _nonNegative(value) {
@@ -187,7 +171,7 @@ class ATimer extends HTMLElement {
   * Refresh rate (milliseconds) to periodically update current-time.
   */
   set refreshRate(value) {
-    // if (value < 5 || value > this.startTime*1000) return; 
+    // if (value < 5 || value > this.startTime*1000) return;
     this.setAttribute('refresh-rate', value);
   }
   get refreshRate() {
@@ -216,7 +200,7 @@ class ATimer extends HTMLElement {
     return this.hasAttribute('run');
   }
 
-  
+
   set resetProp(value) {
     const isReset = Boolean(value);
     if (isReset)
@@ -239,10 +223,14 @@ class ATimer extends HTMLElement {
       const currentTime = this.currentTime;
       this.setAttribute('finished', '');
       this.resetProp = true;
-      this.dispatchEvent(new CustomEvent('finish'), { detail: currentTime }); 
-      // console.log('oi', this.currentTime)     
+
+
+      this.dispatchEvent(new CustomEvent('finish'), {detail: currentTime});
+
+      // console.log(`currentTime before pause: ${this.currentTime}`);
       if (this.run) this.run = false;
-      // console.log('oi2', this.currentTime)     
+      // console.log(`currentTime after pause: ${this.currentTime}`);
+      // console.log('oi2', this.currentTime)
     }
     else
       this.removeAttribute('finished');
@@ -250,6 +238,22 @@ class ATimer extends HTMLElement {
   get finished() {
     return this.hasAttribute('finished');
   }
+
+  /**
+  * Sinalizes if slot has animations.
+  */
+  set hasAnimations(value) {
+    if (this._animatedElements && this._animatedElements.length > 0) {
+      this.setAttribute('has-animations', '');
+    } else {
+      this.removeAttribute('has-animations');
+    }
+  }
+  get hasAnimations() {
+    return this.hasAttribute('has-animations');
+  }
+
+
 
   /**
   * Starts the timer.
@@ -273,10 +277,8 @@ class ATimer extends HTMLElement {
   }
 
   _start() {
-    // if (this._rotateAnimation) this._rotateAnimation.play();
-    // if (this._animatable && this._animatable.style.animationPlayState != 'running') this._animatable.style.animationPlayState = 'running';    
-    if (this._animation) this._animation.play();    
-    
+    if(this.hasAnimations) this._startCssAnimations();
+
     if (this.finished) this.finished = false;
     clearTimeout(this._timeoutHandler);
     this._timeoutHandler = setTimeout(this._step.bind(this), this.timeoutPeriod);
@@ -293,229 +295,210 @@ class ATimer extends HTMLElement {
   }
 
   _iAmFinished() {
+    // console.log(`this._dateAhead: ${this._dateAhead}`)
+    // console.log(`this._now: ${this._now}`)
     return (this._dateAhead <= this._now);
   }
-  
+
   _stop() {
-    // if (this._rotateAnimation) this._rotateAnimation.pause();
-    // if (this._animatable && this._animatable.style.animationPlayState != 'paused') this._animatable.style.animationPlayState = 'paused';    
-    if (this._animatable) this._logAnimationPerformance();
-    if (this._animation) this._animation.pause();    
-    
+    if(this.hasAnimations) this._pauseCssAnimations();
+
     this.currentTime = this._updateCurrentTime();
     clearTimeout(this._timeoutHandler);
     clearInterval(this.refreshRateTimer);
   }
 
-  _logAnimationPerformance() {
-    if (this._animatableRotate) {
-      this.currentTime;
-      //TODO: [when stopped, ] currentTime returns actually lastCurrentTime.
-      const currentRotation360 = this._getCurrentRotation();
-      const animCurrentTime = this.startTime * (currentRotation360/360);
-      // const animCurrentTime = this._rotateAnimation.currentTime / 1000;
-      console.log(`animation currentTime: ${this.startTime - animCurrentTime}`);
-      console.log(`animation currentRotation: ${currentRotation360}`);
-      // console.log(`timer versus animation time diff: ${currentTime - animCurrentTime}`);
-    }
-  }
-
   _reset() {
-    // if (this._rotateAnimation) this._rotateAnimation.cancel();
+    if (this.hasAnimations) this._restartCssAnimations();
 
-    if (this._animatable) {
-      this._resetAnimation();
-    };
-    
-    this.run = false; //User's taste: resets and stops; or only resets.
+    this.run = false; // User's taste: resets and stops; or only resets.
     this.currentTime = this.startTime;
   }
 
-  
+
   /**
   * Animation
   */
-  _setAnimation() {
-    if (!this._animatableTranslateX && !this._animatableRotate) return;
-    this._resetAnimation();
-
-    let transforms = null;
-
-    if (this._animatableTranslateX) {
-      this._animatable = this._animatableTranslateX;
-      transforms = {start: 'translateX(-100%)', end: 'translateX(0)'};
-    } else if (this._animatableRotate) {
-      this._animatable = this._animatableRotate;
-      transforms = {start: 'rotate(0deg)', end: 'rotate(360deg)'};
-    } else {
-      this._animatable = null;
-      return;
-    }
-
-    if (!transforms) return;
-    var animationTransformation = [
-      { transform: transforms.start, color: 'var(--start-color)' },
-      { color: 'var(--alert-color)', offset: 0.6667},
-      { transform: transforms.end, color: 'var(--end-color)' }
-    ];
-    var animationDuration = {
-      duration: this.startTime * 1000,
-      iterations: 1,
-    }
-  
-    const animatable = this._animatable;
-
-    const animation = animatable.animate(
-      animationTransformation, 
-      animationDuration,
-    );
-    // https://www.polymer-project.org/2.0/docs/devguide/gesture-events
-    // animation.onstart = this._animationStart.bind(this);
-    animation.pause();
-    animation.onfinish = this._animationEnd.bind(this);
-    animation.oncancel = this._animationCancel.bind(this);
-
-    this._animation = animation;
+  _restartCssAnimations() {
+    // console.log('restarted', this.getAttribute('start-time'));
+    if (!this._animatedElements) return;
+    this._animatedElements.forEach((animatedEl) => {
+      this._restartElementCssAnimation(animatedEl);
+    });
   }
 
-  _animationClick(e) {
-    // console.log(e)    
+  _restartElementCssAnimation(animatedEl) {
+    // http://jsfiddle.net/leaverou/xK6sa/2/
+    // restart animation
+    var me = animatedEl;
+    // const memAnimation = animatedEl.style.webkitAnimation;
+    // console.log(`memAnimation: ${memAnimation}`);
+    animatedEl.style.webkitAnimation = 'none';
+    setTimeout(() => {
+      this._setStyle(me, 'animation', '-webkit-animation', '');
+      // this._setStyle(me, 'animation', '-webkit-animation', memAnimation);
+      // me.style.webkitAnimation = memAnimation;
+      this._setElementCssAnimation(me);
+    }, 10);
+
+
+    // var elm = animatedEl;
+    // elm.offsetWidth = elm.offsetWidth;
+    // void elm.offsetWidth;
+    // var newone = elm.cloneNode(true);
+    // this._pauseElementCssAnimation(newone);
+    // console.log('elm.parentNode: ', elm.parentNode)
+    // console.log('elm: ', elm)
+    // elm.parentNode.replaceChild(newone, elm);
+  }
+
+  _setElementCssAnimation(animatedEl) {
+    // animatedEl.style["-webkit-animation-name"] = 'rota';
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');
+    this._setStyle(animatedEl, 'animationIterationCount', '-webkit-animation-iteration-count', '1');
+    this._setStyle(animatedEl, 'animationDuration', '-webkit-animation-duration', `${this.startTime}s`);
+    // animatedEl.style["-webkit-animation-play-state"] = 'paused';
+    // animatedEl.style["-webkit-animation-iteration-count"] = `1`;
+    // animatedEl.style["-webkit-animation-duration"] = `${this.startTime}s`;
+    // console.log('animatedEl: ', animatedEl);
+    // console.log(animatedEl.style["-webkit-animation-name"]);
+    // console.log(animatedEl.style["-webkit-animation-iteration-count"]);
+    // console.log(animatedEl.style["-webkit-animation-duration"]);
+    // console.log(animatedEl.style["-webkit-animation-play-state"]);
+
+    const animationEventName = whichAnimationEventName();
+    animatedEl.addEventListener(animationEventName, this._cssAnimationEnded.bind(this));
+
+    function whichAnimationEventName(){
+      var t,
+          el = document.createElement("fakeelement");
+    
+      var animations = {
+        "animation"      : "animationend",
+        "OAnimation"     : "oAnimationEnd",
+        "MozAnimation"   : "animationend",
+        "WebkitAnimation": "webkitAnimationEnd"
+      }
+    
+      for (t in animations){
+        if (el.style[t] !== undefined){
+          return animations[t];
+        }
+      }
+    }    
+  }
+
+  _cssAnimationEnded(e) {
+    // console.log('css animations ended event', e);
+  }
+
+  _startCssAnimations() {
+    if (!this._animatedElements) return;
+    this._animatedElements.forEach((animatedEl) => {
+      this._startElementCssAnimation(animatedEl);
+    });
+  }
+
+  _pauseCssAnimations() {
+    if (!this._animatedElements) return;
+    this._animatedElements.forEach((animatedEl) => {
+      this._pauseElementCssAnimation(animatedEl);
+    });
+  }
+
+  _startElementCssAnimation(animatedEl) {
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'running');    
+    // animatedEl.style['-webkit-animation-play-state'] = 'running';
+  }
+  
+  _pauseElementCssAnimation(animatedEl) {
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');    
+    // animatedEl.style['-webkit-animation-play-state'] = 'paused';
+  }
+
+  _clickableAreaClicked(e) {
+    // console.log(e)
     // console.log('animation clicked');
     this.run = !this.run;
     // this._animatable.animationPlayState = "paused";
   }
-  
-  _animationEnd(e) {
-    console.log(e)    
-    console.log('animation ended');
-    this._animatable.animationPlayState = "paused";
-  }
-  
-  _animationCancel(e) {
-    console.log(e)    
-    console.log('animation cancelled');
-    // this._animatable.animationPlayState = "paused";
-  }
-  
-  _animationStart(e) {
-    console.log(e)    
-    console.log('animation started');
-  }
 
-  _resetAnimation() {
-    if (!this._animation) return;
-    this._animation.cancel();
 
-    // // https://css-tricks.com/restart-css-animation/
-    // const element = this._animatable;
-    // element.classList.remove("animation");
-    // void element.offsetWidth;
-    // element.classList.add("animation");
-    // console.log(element.classList)
-    // return;
 
-    // console.log(this._animatable);
-    // if (!this._animatable) return;
-    
-    // // https://css-tricks.com/restart-css-animation/
-    // var elm = this._animatable;
-    // var newone = elm.cloneNode(true);
-    // elm.parentNode.replaceChild(newone, elm);
-    // this._animatable = newone;      
-    // this._animatable.addEventListener('webkitAnimationEnd', this._animationEnd.bind(this));
-    // this._animatable.addEventListener('webkitAnimationStart', this._animationStart.bind(this));
-
-    // console.log(`animation: ${this._animatable.style.animation}`)
-    // console.log(this._animatable.style)
-    // this._animatable.style.animation = '';
-
-  }
 
   /**
   * Slots
   */
   _connectSlots() {
-    this._animatableTranslateX = this._getElementFromSlot('#animatableTranslateXId');
-    this._animatableRotate = this._getElementFromSlot('#animatableRotateId');
-    this._setAnimation();
+    this._animatable = this._getElementFromSlot('#animatable');
+    if (!this._animatable) return;
+    // console.log(`this._animatable: ${this._animatable}`);
+    
+    var allElements = Array.from(this._animatable.getElementsByTagName('*'));
+    allElements.push(this._animatable); // We must not forget the parent itself
+    // console.log(`allElements: ${allElements}`);
+    let animatedElements = [];
+    for (var i=0, max=allElements.length; i < max; i++) {
+      const el = allElements[i];
+      const animationName = this._getStyle(el, 'animationName', '-webkit-animation-name');
+      // const animationDuration = getStyle(el, "animationDuration", "-webkit-animation-duration");
+      // console.log(animationDuration)
+      // console.log(`animationName: ${animationName}`);
+      if (animationName != 'none') animatedElements.push(el);
+    }
+    this._animatedElements = animatedElements;
+    // console.log('animated elements: ', animatedElements);
+    this.hasAnimations = 'anyvalue-it-will-detect-internally';
+    // if (this._animatedElements.length > 0) {
+    // } else {
+    //   this.removeAttribute('has-animations');
+    // }
+    // this.hasAnimations = this.getAttribute('has-animations');
+    // console.log(this.hasAnimations);
+    if (this.hasAnimations) this._restartCssAnimations();
+    return;
   }
+  
   _getElementFromSlot(querySelector) {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);
     if (!slotElement) return;
-    const actualElements = slotElement.assignedNodes({flatten: true});
-    for (var i = 0; i < actualElements.length; i++) {
-      var element = actualElements[i];
-      if (element != null) return element;      
-    }
-      // .find(n => n != null); //for loop is IE11 compatible
+    const actualElement = slotElement.assignedNodes({flatten: true})
+      .find((n) => n != null);
     // console.log(actualElement);
-    // return actualElement;
-  }
-  
-  _slotPlayPause() {
-    this.run = !this.run;
-  }
-  _slotPlay() {
-    this.run = true;
-  }
-  _slotPause() {
-    this.run = false;
-  }
-  _slotReset() {
-    this.resetProp = true;
-    // this._rotateAnimation.playbackRate = 3;
+    return actualElement;
   }
 
-  _getCurrentRotation() {
-    // https://css-tricks.com/get-value-of-css-rotation-through-javascript/
-    var el = this._animatableRotate;
-    if (!el) return null;
-    var st = window.getComputedStyle(el, null);
-    var tr =  st.getPropertyValue("-webkit-transform") ||
-              st.getPropertyValue("-moz-transform") ||
-              st.getPropertyValue("-ms-transform") ||
-              st.getPropertyValue("-o-transform") ||
-              st.getPropertyValue("transform") ||
-              "Either no transform set, or browser doesn't do getComputedStyle";
-    
-    // rotate(Xdeg) = matrix(cos(X), sin(X), -sin(X), cos(X), 0, 0);
-    const currentRotation = matrixToDegrees(tr);
-    const currentRotation360 = currentRotation > 0 ? currentRotation : (360 + currentRotation);
-  
-    return currentRotation360;          
+  _getStyle(elem, cssprop, cssprop2) {
+    // IE
+    if (elem.currentStyle) {
+      return elem.currentStyle[cssprop];
 
-    function matrixToDegrees(tr) {
-      if (!tr || tr == 'none') return null;
-      // With rotate(30deg)...
-      // matrix(0.866025, 0.5, -0.5, 0.866025, 0px, 0px)
-      // console.log('Matrix: ' + tr);
+    // other browsers
+    } else if (document.defaultView && document.defaultView.getComputedStyle) {
+      return document.defaultView.getComputedStyle(elem, null).getPropertyValue(cssprop2);
 
-
-      // rotation matrix - http://en.wikipedia.org/wiki/Rotation_matrix
-
-      var values = tr.split('(')[1];
-          values = values.split(')')[0];
-          values = values.split(',');
-      var a = values[0];
-      var b = values[1];
-      var c = values[2];
-      var d = values[3];
-
-      var scale = Math.sqrt(a*a + b*b);
-
-      // arc sin, convert from radians to degrees, round
-      // DO NOT USE: see update below
-      var sin = b/scale;
-      // var angle = Math.round(Math.asin(sin) * (180/Math.PI));
-      var angle = Math.round(Math.atan2(b, a) * (180/Math.PI));
-
-      // works!
-      // console.log('Rotate: ' + angle + 'deg');
-      return angle;
+    // fallback
+    } else {
+      return null;
     }
+  }
+  _setStyle(elem, cssprop, cssprop2, value) {
+    // IE
+    if (elem.currentStyle) {
+      elem.currentStyle[cssprop] = value;
+      return;
 
-  }  
+    // other browsers
+    } else if (document.defaultView && document.defaultView.getComputedStyle) {
+      elem.style.setProperty(cssprop2, value);
+      return;
+
+    // fallback
+    } else {
+      return null;
+    }
+  }
 
 }
 

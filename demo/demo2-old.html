@@ -1,45 +1,40 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <!doctype html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-    <title>a-timer no-visual demo</title>
+      <title>a-timer no-visual demo</title>
 
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+      <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
-    <link rel="import" href="../../polymer/polymer.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-    <script src="../a-timer.js"></script>
+      <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+      <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+      <script src="../a-timer-old.js"></script>
+      
+      <custom-style>
+        <style is="custom-style" include="demo-pages-shared-styles">
+          div {
+            margin: 10px 0;
+          }
+        </style>
+      </custom-style>
+    </head>
+    <body>
+      <div class="vertical-section-container centered">
+        <h3>No visual a-timer demo</h3>
 
-    <custom-style>
-      <style is="custom-style" include="demo-pages-shared-styles">
-        div {
-          margin: 10px 0;
-        }
-      </style>
-    </custom-style>
-  </head>
-  <body>
-    <div class="vertical-section-container centered">
-      <h3>Updates elapsed time demo</h3>
-
-      <demo-snippet>
-        <p>Elapsed time timer example</p>
-        <p>"current-time" attribute is updated every 1000ms.</p>
-        <template>
+        <demo-snippet>
+          <p>No visual timer example</p>
+          <p>Should finish (and alert) in 3 seconds.</p>
+          <template>
             <style>
               a-timer {
                 display: none;
               }
             </style>
 
-            <a-timer 
-              id="timer"
-              refresh-rate="1000"
-              start-time="30" >
-            </a-timer>
+            <a-timer id="timer" start-time="3"></a-timer>
           
             <div>
               <button id="start">Start</button>
@@ -70,9 +65,10 @@
               }
             </script>
           </template>
-        </demo-snippet>                 
-  
-        </div>
-      </body>
-    </html>
-  
+        </demo-snippet>       
+        
+
+
+      </div>
+    </body>
+  </html>

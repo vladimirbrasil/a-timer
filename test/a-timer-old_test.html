@@ -55,7 +55,7 @@
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
 
-    <script src="../a-timer-future.js"></script>
+    <script src="../a-timer-old.js"></script>
   </head>
   <body>
 
@@ -72,26 +72,11 @@
         </a-timer>
       </template>
     </test-fixture>
-    <test-fixture id="WithAnimationFixture">
+    <test-fixture id="WithTranslateXSlotTestFixture">
       <template>
         <a-timer start-time="60">
-          <div slot="animatable" style="animation: animationName1 15s steps(1, end) infinite;"></div>
+          <div slot="animatableTranslateX" id="animatableTranslateX" style="height: 1px; width: 100px; background-color: black;"></div>
         </a-timer>
-      </template>
-    </test-fixture>
-    <test-fixture id="WithAnimationsInsideFixture">
-      <template>
-        <a-timer start-time="60">
-          <div slot="animatable">
-            <div style="animation: animationName1 15s steps(1, end) infinite;"></div>
-            <div style="animation: animationName2 15s steps(1, end) 1;"></div>
-          </div>
-        </a-timer>
-      </template>
-    </test-fixture>
-    <test-fixture id="animatedDiv">
-      <template>
-        <div style="animation: animationName1 15s steps(1, end) infinite;"></div>
       </template>
     </test-fixture>
   
@@ -100,99 +85,28 @@
         let element;
 
         beforeEach( function() {
-        });
-        
-        it( 'instantiating the element with default properties works', function() {
           element = fixture('BasicTestFixture');
+        });
+    
+        it( 'instantiating the element with default properties works', function() {
           expect( element.startTime,  `startTime` ).to.equal  ( '30' );
           expect( element.run,        `run` ).to.equal        ( false );
           expect( element.resetProp,  `resetProp` ).to.equal  ( false );
           expect( element.refreshRate,`refreshRate` ).to.equal( null );
           expect( element.finished,   `finished` ).to.equal   ( false );
         });
-        
+    
         it( 'set element properties works', function() {
-          element = fixture('BasicTestFixture');
           element.startTime = 77;
           expect( element.startTime, `startTime` ).to.equal( '77' );
           element.refreshRate = 300;
           expect( element.refreshRate,`refreshRate` ).to.equal( '300' );
         });
-        
+
         it( `can't manually set [finished] property`, function() {
-          element = fixture('BasicTestFixture');
           element.finished = true;
           expect( element.finished, `finished` ).to.equal( false );
         });
-        
-        it( `properly detect no animations`, function() {
-          element = fixture('BasicTestFixture');
-          // console.log(element.hasAnimations)
-          // element = fixture('WithAnimationsInsideFixture');
-          expect( element.hasAnimations, `has-animations` ).to.equal( false );
-        });
-        
-        it( `properly detect animations`, function() {
-          const animatedDiv = fixture('animatedDiv');
-          const originalAnimation = getAnimationData(animatedDiv);
-          console.log('originalAnimation:', originalAnimation);
-
-          element = fixture('WithAnimationFixture');
-          const animatedElements = element._animatedElements;
-          const firstAnimatedElement = animatedElements[0];
-          const insideTimerModifiedAnimation = getAnimationData(firstAnimatedElement);
-          // console.log(animatedElements);
-          console.log('insideTimerModifiedAnimation: ', insideTimerModifiedAnimation);
-          
-          expect( element.hasAnimations, `has-animations` ).to.equal( true );
-          // expect( insideTimerModifiedAnimation.playState, `animation play state` ).to.equal( 'paused' );
-          expect( insideTimerModifiedAnimation.iterationCount, `animation iteration count` ).to.equal( '1' );
-          expect( insideTimerModifiedAnimation.duration, `animation duration` ).to.equal( '0s' );
-          expect( insideTimerModifiedAnimation.name, `animation name` ).to.equal( 'none' );
-        });
-
-        it( `properly detect animations inside`, function() {
-          const animatedDiv = fixture('animatedDiv');
-          const originalAnimation = getAnimationData(animatedDiv);
-          console.log('originalAnimation:', originalAnimation);
-
-          element = fixture('WithAnimationFixture');
-          const animatedElements = element._animatedElements;
-          const firstAnimatedElement = animatedElements[0];
-          const insideTimerModifiedAnimation = getAnimationData(firstAnimatedElement);
-          // console.log(animatedElements);
-          console.log('insideTimerModifiedAnimation: ', insideTimerModifiedAnimation);
-          
-          expect( element.hasAnimations, `has-animations` ).to.equal( true );
-          // expect( insideTimerModifiedAnimation.playState, `animation play state` ).to.equal( 'paused' );
-          expect( insideTimerModifiedAnimation.iterationCount, `animation iteration count` ).to.equal( '1' );
-          expect( insideTimerModifiedAnimation.duration, `animation duration` ).to.equal( '0s' );
-          expect( insideTimerModifiedAnimation.name, `animation name` ).to.equal( 'none' );
-        });
-
-        function getAnimationData(animatedEl) {
-          return {
-            playState: element._getStyle(animatedEl, "animationPlayState", "-webkit-animation-play-state"),
-            iterationCount: element._getStyle(animatedEl, "animationIterationCount", "-webkit-animation-iteration-count"),
-            duration: element._getStyle(animatedEl, "animationDuration", "-webkit-animation-duration"),
-            name: element._getStyle(animatedEl, "animationName", "-webkit-animation-name"),
-          }
-        }
-
-        function getStyle(elem, cssprop, cssprop2) {
-          // IE
-          if (elem.currentStyle) {
-            return elem.currentStyle[cssprop];
-
-          // other browsers
-          } else if (document.defaultView && document.defaultView.getComputedStyle) {
-            return document.defaultView.getComputedStyle(elem, null).getPropertyValue(cssprop2);
-
-          // fallback
-          } else {
-            return null;
-          }
-        }        
 
       });
 
@@ -232,39 +146,6 @@
             {method: 'start',   time: element.startTime}, 
             {method: 'running', time: timeRunning},
             {method: 'paused',  time: timeRunningAfterStop},
-            {method: 'should',  time: should},
-            {method: 'am',      },
-          ]);
-
-        });
-
-        it( 'should be able to change startTime after start', function() {
-          const newStartTime = 300;
-          const timeRunning = 11;
-          const should = newStartTime;
-          const timeRunningAfterStop = 8;
-          buildTimerTest(this.clock,
-          [
-            {method: 'start',   time: element.startTime}, 
-            {method: 'running', time: timeRunning},
-            {method: 'paused',  time: timeRunningAfterStop},
-            {method: 'changeStartTime',   time: newStartTime}, 
-            {method: 'should',  time: should},
-            {method: 'am',      },
-          ]);
-
-        });
-
-        it( 'should be able to change startTime while running', function() {
-          const newStartTime = 300;
-          const timeRunning = 11;
-          const should = newStartTime;
-          const timeRunningAfterStop = 8;
-          buildTimerTest(this.clock,
-          [
-            {method: 'start',   time: element.startTime}, 
-            {method: 'running', time: timeRunning},
-            {method: 'changeStartTime',   time: newStartTime}, 
             {method: 'should',  time: should},
             {method: 'am',      },
           ]);
@@ -351,9 +232,6 @@
             if (!method) return;
 
             let actions = {
-              changeStartTime:  (t) => {
-                element.startTime = t; //already set at beforeEach
-              },
               start:  (t) => {
                 // element.startTime = t; //already set at beforeEach
               },
@@ -408,7 +286,6 @@
               const divider     = `------------------`;
               const sadDivider  = `-------:/---------`;
               let sentences = {
-                changeStartTime:  ({time}) => `${Math.round(time)}   \t| resetting startTime to ${time}s`,
                 start:  ({time}) => `${Math.round(time)}   \t| starting at ${time}s`,
                 refreshRate:({time}) => `  \t| setting a ${time}ms refresh-rate`,
                 running:({time}) => `-${Math.round(time)}  \t| after ${time}s`,
@@ -493,42 +370,7 @@
           this.timeout(afterShouldAlert);
         });
 
-        it( 'should update startTime if startTime is changed again (real time test)', function(done) {
-          element = fixture('BasicTestFixture');
-          element.startTime = '2';
-          element.startTime = '1';
-          element.run = true;
-          const afterShouldAlert = 1000 * (parseFloat(element.startTime) + 1);
-          
-          element.addEventListener('finish', function(e) {
-            // console.log(element.currentTime, element.lastCurrentTime)
-            expect( element.finished ).to.equal( true );
-            expect( element.currentTime ).to.equal( element.startTime );
-            expect( element.lastCurrentTime, `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` ).to.equal( '0' );
-            done();
-          });
-          this.timeout(afterShouldAlert);
-        });
-
-        it( 'should restart if startTime is changed while running (real time test)', function(done) {
-          element = fixture('BasicTestFixture');
-          element.startTime = '3';
-          element.run = true;
-          element.startTime = '1';
-          element.run = true;
-          const afterShouldAlert = 1000 * (parseFloat(element.startTime) + 3);
-          
-          element.addEventListener('finish', function(e) {
-            // console.log(element.currentTime, element.lastCurrentTime)
-            expect( element.finished ).to.equal( true );
-            expect( element.currentTime ).to.equal( element.startTime );
-            expect( element.lastCurrentTime, `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` ).to.equal( '0' );
-            done();
-          });
-          this.timeout(afterShouldAlert);
-        });
-
-        it.skip( 'should rotate in sync with time', function(done) {
+        it( 'should rotate in sync with time', function(done) {
           element = fixture('WithRotateSlotTestFixture');
           element.startTime = '60';
           const timeDivider = 36;
