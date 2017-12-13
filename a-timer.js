@@ -1,57 +1,3 @@
-/*
-`<a-timer>` is a countdown timer. It is capable to be driven by attributes only, as you wish.
-
-```html
-<a-timer start-time="30"></a-timer>
-```
-
-You can observe changes to the `[[finished]]` attribute or to the `finish` event.
-Suit yourself.
-```html
-<a-timer finished="{{finished}}"></a-timer>
-<a-timer on-finish="timerFinished"></a-timer>
-```
-
-`<a-timer>` may easily be attached to graphic elements.
-```html
-<a-timer current-time="{{currentTime}}"></a-timer>
-[[currentTime]]
-```
-
-`<a-timer>` has slots. It can animate, in sync with timer, some animatable elements passed to it. For now, you can pass elements to its `animatableTranslateX` or `animatableRotate` slots.
-In the future it should be possible to let you freely create your animation with keyframes and let the timer set only its duration and playback in sync with the timer. This is not ready yet, unfotunately.
-[For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
-```html
-<a-timer>
-  <div slot="animatableTranslateX" style="height: 20px; width: 100%;">
-</a-timer>
-```
-
-It's up to you to define `refresh-rate` (in milliseconds) to update currentTime periodically.
-By default `current-time` is updated only on finish and whenever you ask for its value.
-```html
-<a-timer refresh-rate="200" current-time="{{currentTime}}"></a-timer>
-[[currentTime]]
-```
-
-Start/stop `<a-timer>` by changing `run` property to true/false.
-```html
-<a-timer start-time="30" run="[[run]]"></a-timer>
-```
-Or use the `start`/`stop` methods.
-```html
-<a-timer id="myTimer"></a-timer>
-```
-```js
-this.$.myTimer.start();
-this.$.myTimer.stop();
-```
-
-@element a-timer
-@hero hero.svg
-@demo demo/index.html
-*/
-
 const template = document.createElement('template');
 template.innerHTML = `
   <style>
@@ -81,16 +27,6 @@ class ATimer extends HTMLElement {
     super();
     this.attachShadow({mode: 'open'});
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    // const hasValue = newValue !== null;
-    // switch (name) {
-    //   case 'startTime':
-    //     // Note the attributeChangedCallback is only handling the *side effects*
-    //     // of setting the attribute.
-    //     // this.setAttribute('aria-checked', hasValue);
-    //     break;
   }
 
   connectedCallback() {
@@ -254,7 +190,6 @@ class ATimer extends HTMLElement {
   }
 
 
-
   /**
   * Starts the timer.
   */
@@ -340,52 +275,32 @@ class ATimer extends HTMLElement {
       // me.style.webkitAnimation = memAnimation;
       this._setElementCssAnimation(me);
     }, 10);
-
-
-    // var elm = animatedEl;
-    // elm.offsetWidth = elm.offsetWidth;
-    // void elm.offsetWidth;
-    // var newone = elm.cloneNode(true);
-    // this._pauseElementCssAnimation(newone);
-    // console.log('elm.parentNode: ', elm.parentNode)
-    // console.log('elm: ', elm)
-    // elm.parentNode.replaceChild(newone, elm);
   }
 
   _setElementCssAnimation(animatedEl) {
-    // animatedEl.style["-webkit-animation-name"] = 'rota';
     this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');
     this._setStyle(animatedEl, 'animationIterationCount', '-webkit-animation-iteration-count', '1');
     this._setStyle(animatedEl, 'animationDuration', '-webkit-animation-duration', `${this.startTime}s`);
-    // animatedEl.style["-webkit-animation-play-state"] = 'paused';
-    // animatedEl.style["-webkit-animation-iteration-count"] = `1`;
-    // animatedEl.style["-webkit-animation-duration"] = `${this.startTime}s`;
-    // console.log('animatedEl: ', animatedEl);
-    // console.log(animatedEl.style["-webkit-animation-name"]);
-    // console.log(animatedEl.style["-webkit-animation-iteration-count"]);
-    // console.log(animatedEl.style["-webkit-animation-duration"]);
-    // console.log(animatedEl.style["-webkit-animation-play-state"]);
 
     const animationEventName = whichAnimationEventName();
     animatedEl.addEventListener(animationEventName, this._cssAnimationEnded.bind(this));
 
-    function whichAnimationEventName(){
-      var t,
-          el = document.createElement("fakeelement");
-    
+    function whichAnimationEventName() {
+      const el = document.createElement('fakeelement');
+
       var animations = {
-        "animation"      : "animationend",
-        "OAnimation"     : "oAnimationEnd",
-        "MozAnimation"   : "animationend",
-        "WebkitAnimation": "webkitAnimationEnd"
-      }
-    
-      for (t in animations){
-        if (el.style[t] !== undefined){
+        'animation': 'animationend',
+        'OAnimation': 'oAnimationEnd',
+        'MozAnimation': 'animationend',
+        'WebkitAnimation': 'webkitAnimationEnd',
+      };
+
+      for (const t in animations) {
+        if (el.style[t] !== undefined) {
           return animations[t];
         }
       }
-    }    
+    }
   }
 
   _cssAnimationEnded(e) {
@@ -407,12 +322,12 @@ class ATimer extends HTMLElement {
   }
 
   _startElementCssAnimation(animatedEl) {
-    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'running');    
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'running');
     // animatedEl.style['-webkit-animation-play-state'] = 'running';
   }
-  
+
   _pauseElementCssAnimation(animatedEl) {
-    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');    
+    this._setStyle(animatedEl, 'animationPlayState', '-webkit-animation-play-state', 'paused');
     // animatedEl.style['-webkit-animation-play-state'] = 'paused';
   }
 
@@ -424,8 +339,6 @@ class ATimer extends HTMLElement {
   }
 
 
-
-
   /**
   * Slots
   */
@@ -433,7 +346,7 @@ class ATimer extends HTMLElement {
     this._animatable = this._getElementFromSlot('#animatable');
     if (!this._animatable) return;
     // console.log(`this._animatable: ${this._animatable}`);
-    
+
     var allElements = Array.from(this._animatable.getElementsByTagName('*'));
     allElements.push(this._animatable); // We must not forget the parent itself
     // console.log(`allElements: ${allElements}`);
@@ -449,16 +362,10 @@ class ATimer extends HTMLElement {
     this._animatedElements = animatedElements;
     // console.log('animated elements: ', animatedElements);
     this.hasAnimations = 'anyvalue-it-will-detect-internally';
-    // if (this._animatedElements.length > 0) {
-    // } else {
-    //   this.removeAttribute('has-animations');
-    // }
-    // this.hasAnimations = this.getAttribute('has-animations');
-    // console.log(this.hasAnimations);
     if (this.hasAnimations) this._restartCssAnimations();
     return;
   }
-  
+
   _getElementFromSlot(querySelector) {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);

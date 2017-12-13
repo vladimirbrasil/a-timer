@@ -6,8 +6,21 @@
 
 ## Description
 
-`<a-timer>` is a countdown timer. It is capable to be driven by attributes only, as you wish.
-`<a-timer>` accepts slots to animate in sync with timer.
+`<a-timer>` is a countdown timer.
+`<a-timer>` syncs duration, play and pause with animations you pass to its slot.
+It's a hard battle to compete with "why not use animations alone?". 
+Some of us, though, might still enjoy the confort of simply supplying animations ideas inside `<a-timer></a-timer>` and receiving a start/stop methods, or run=true/false attributes.
+
+The proposed goal is to use minimum CPU. To be a quiet timer. 
+So by now we trade the precision of the performance function for the one-event setTimeout function.
+
+We are not olympic watches, more than we should carefully do not bother the page we're in.
+Although searching for generic slotted animations to be synced is not better than to use an animation directly at your page. At this point, we trade comfort while loosing some performance.
+
+There is not a low chance that this `a-timer` has no niche, being surpassed either by pure animations or by performant watches.
+
+Wee'll see. 
+While we wait, here `a-timer` is.
 
 <!---
 ```
@@ -47,12 +60,11 @@ Suit yourself.
 [[currentTime]]
 ```
 
-`<a-timer>` has slots. It can animate, in sync with timer, some animatable elements passed to it. For now, you can pass elements to its `animatableTranslateX` or `animatableRotate` slots.
-In the future it should be possible to let you freely create your animation with keyframes and let the timer set only its duration and playback in sync with the timer. This is not ready yet, unfotunately. 
-[For great performance prefer to animate opacity, translate, rotate, scale](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
+`<a-timer>` has slots. It lets you freely create your animation with keyframes and let the timer set only its duration and playback in sync with the timer.
+[For great performance prefer to animate opacity, translate, rotate, scale.](https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/)
 ```html
 <a-timer>
-  <div slot="animatableTranslateX" style="height: 20px; width: 100%;">
+  <div slot="animatable" style="height: 20px; width: 100%;">
 </a-timer>
 ```
 
