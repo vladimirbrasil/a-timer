@@ -431,9 +431,6 @@ class ATimer extends HTMLElement {
 
   }
 
-
-  
-
   /**
   * Slots
   */
@@ -446,10 +443,14 @@ class ATimer extends HTMLElement {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);
     if (!slotElement) return;
-    const actualElement = slotElement.assignedNodes({flatten: true})
-      .find(n => n != null);
+    const actualElements = slotElement.assignedNodes({flatten: true});
+    for (var i = 0; i < actualElements.length; i++) {
+      var element = actualElements[i];
+      if (element != null) return element;      
+    }
+      // .find(n => n != null); //for loop is IE11 compatible
     // console.log(actualElement);
-    return actualElement;
+    // return actualElement;
   }
   
   _slotPlayPause() {

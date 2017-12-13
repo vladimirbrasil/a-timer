@@ -467,10 +467,16 @@ class ATimer extends HTMLElement {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);
     if (!slotElement) return;
-    const actualElement = slotElement.assignedNodes({flatten: true})
-      .find((n) => n != null);
-    // console.log(actualElement);
-    return actualElement;
+    const actualElements = slotElement.assignedNodes({flatten: true});
+    for (var i = 0; i < actualElements.length; i++) {
+      var element = actualElements[i];
+      if (element != null) return element;
+    }
+
+    // const actualElement = slotElement.assignedNodes({flatten: true})
+    //   .find((n) => n != null);
+    // // console.log(actualElement);
+    // return actualElement;
   }
 
   _getStyle(elem, cssprop, cssprop2) {
