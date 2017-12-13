@@ -72,59 +72,145 @@
         </a-timer>
       </template>
     </test-fixture>
-    <test-fixture id="WithTranslateXSlotTestFixture">
+    <test-fixture id="WithAnimationFixture">
       <template>
         <a-timer start-time="60">
-          <div slot="animatableTranslateX" id="animatableTranslateX" style="height: 1px; width: 100px; background-color: black;"></div>
+          <div slot="animatable" style="animation: animationName1 15s steps(1, end) infinite;"></div>
         </a-timer>
+      </template>
+    </test-fixture>
+    <test-fixture id="WithAnimationsInsideFixture">
+      <template>
+        <a-timer start-time="60">
+          <div slot="animatable">
+            <div style="animation: animationName1 15s steps(1, end) infinite;"></div>
+            <div style="animation: animationName2 15s steps(1, end) 1;"></div>
+          </div>
+        </a-timer>
+      </template>
+    </test-fixture>
+    <test-fixture id="animatedDiv">
+      <template>
+        <div style="animation: animationName1 15s steps(1, end) infinite;"></div>
       </template>
     </test-fixture>
   
     <script>
-      describe( 'static', function() {
+      suite( 'static', () => {
         let element;
 
-        beforeEach( function() {
+        setup( () => {
+        });
+        
+        test( 'instantiating the element with default properties works', () => {
           element = fixture('BasicTestFixture');
+          assert.equal  ( element.startTime,  '30'  ,  `startTime` );
+          assert.equal        ( element.run,  false  ,        `run` );
+          assert.equal  ( element.resetProp,  false  ,  `resetProp` );
+          assert.equal( element.refreshRate,  null  ,`refreshRate` );
+          assert.equal   ( element.finished,  false  ,   `finished` );
         });
-    
-        it( 'instantiating the element with default properties works', function() {
-          expect( element.startTime,  `startTime` ).to.equal  ( '30' );
-          expect( element.run,        `run` ).to.equal        ( false );
-          expect( element.resetProp,  `resetProp` ).to.equal  ( false );
-          expect( element.refreshRate,`refreshRate` ).to.equal( null );
-          expect( element.finished,   `finished` ).to.equal   ( false );
-        });
-    
-        it( 'set element properties works', function() {
+        
+        test( 'set element properties works', () => {
+          element = fixture('BasicTestFixture');
           element.startTime = 77;
-          expect( element.startTime, `startTime` ).to.equal( '77' );
+          assert.equal( element.startTime,  '77'  , `startTime` );
           element.refreshRate = 300;
-          expect( element.refreshRate,`refreshRate` ).to.equal( '300' );
+          assert.equal( element.refreshRate,  '300'  ,`refreshRate` );
+        });
+        
+        test( `can't manually set [finished] property`, () => {
+          element = fixture('BasicTestFixture');
+          element.finished = true;
+          assert.equal( element.finished,  false  , `finished` );
+        });
+        
+        test( `properly detect no animations`, () => {
+          element = fixture('BasicTestFixture');
+          // console.log(element.hasAnimations)
+          // element = fixture('WithAnimationsInsideFixture');
+          assert.equal( element.hasAnimations,  false  , `has-animations` );
+        });
+        
+        test( `properly detect animations`, () => {
+          const animatedDiv = fixture('animatedDiv');
+          const originalAnimation = getAnimationData(animatedDiv);
+          console.log('originalAnimation:', originalAnimation);
+
+          element = fixture('WithAnimationFixture');
+          const animatedElements = element._animatedElements;
+          const firstAnimatedElement = animatedElements[0];
+          const insideTimerModifiedAnimation = getAnimationData(firstAnimatedElement);
+          // console.log(animatedElements);
+          console.log('insideTimerModifiedAnimation: ', insideTimerModifiedAnimation);
+          
+          assert.equal( element.hasAnimations,  true  , `has-animations` );
+          // assert.equal( insideTimerModifiedAnimation.playState,  'paused'  , `animation play state` );
+          assert.equal( insideTimerModifiedAnimation.iterationCount,  '1'  , `animation iteration count` );
+          assert.equal( insideTimerModifiedAnimation.duration,  '0s'  , `animation duration` );
+          assert.equal( insideTimerModifiedAnimation.name,  'none'  , `animation name` );
         });
 
-        it( `can't manually set [finished] property`, function() {
-          element.finished = true;
-          expect( element.finished, `finished` ).to.equal( false );
+        test( `properly detect animations inside`, () => {
+          const animatedDiv = fixture('animatedDiv');
+          const originalAnimation = getAnimationData(animatedDiv);
+          console.log('originalAnimation:', originalAnimation);
+
+          element = fixture('WithAnimationFixture');
+          const animatedElements = element._animatedElements;
+          const firstAnimatedElement = animatedElements[0];
+          const insideTimerModifiedAnimation = getAnimationData(firstAnimatedElement);
+          // console.log(animatedElements);
+          console.log('insideTimerModifiedAnimation: ', insideTimerModifiedAnimation);
+          
+          assert.equal( element.hasAnimations,  true  , `has-animations` );
+          // assert.equal( insideTimerModifiedAnimation.playState,  'paused'  , `animation play state` );
+          assert.equal( insideTimerModifiedAnimation.iterationCount,  '1'  , `animation iteration count` );
+          assert.equal( insideTimerModifiedAnimation.duration,  '0s'  , `animation duration` );
+          assert.equal( insideTimerModifiedAnimation.name,  'none'  , `animation name` );
         });
+
+        function getAnimationData(animatedEl) {
+          return {
+            playState: element._getStyle(animatedEl, "animationPlayState", "-webkit-animation-play-state"),
+            iterationCount: element._getStyle(animatedEl, "animationIterationCount", "-webkit-animation-iteration-count"),
+            duration: element._getStyle(animatedEl, "animationDuration", "-webkit-animation-duration"),
+            name: element._getStyle(animatedEl, "animationName", "-webkit-animation-name"),
+          }
+        }
+
+        function getStyle(elem, cssprop, cssprop2) {
+          // IE
+          if (elem.currentStyle) {
+            return elem.currentStyle[cssprop];
+
+          // other browsers
+          } else if (document.defaultView && document.defaultView.getComputedStyle) {
+            return document.defaultView.getComputedStyle(elem, null).getPropertyValue(cssprop2);
+
+          // fallback
+          } else {
+            return null;
+          }
+        }        
 
       });
 
-      describe( 'timed', function() {
+      suite( 'timed', () => {
         let element;
 
-        beforeEach( function() {
+        setup( () => {
           this.clock = sinon.useFakeTimers();
           element = fixture('BasicTestFixture');
           element.run = true;
         });
     
-        afterEach( function() {
+        suiteTeardown( () => {
           element.run = false;
           this.clock.restore();
         });
     
-        it( 'should be able to start', function() {
+        test( 'should be able to start', () => {
           const timeRunning = 12;
           const should = element.startTime - timeRunning;
           buildTimerTest(this.clock,
@@ -137,7 +223,7 @@
 
         });
 
-        it( 'should be able to stop after start', function() {
+        test( 'should be able to stop after start', () => {
           const timeRunning = 11;
           const should = element.startTime - timeRunning;
           const timeRunningAfterStop = 8;
@@ -152,7 +238,40 @@
 
         });
 
-        it( 'should be able to restart after stop', function() {
+        test( 'should be able to change startTime after start', () => {
+          const newStartTime = 300;
+          const timeRunning = 11;
+          const should = newStartTime;
+          const timeRunningAfterStop = 8;
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: timeRunning},
+            {method: 'paused',  time: timeRunningAfterStop},
+            {method: 'changeStartTime',   time: newStartTime}, 
+            {method: 'should',  time: should},
+            {method: 'am',      },
+          ]);
+
+        });
+
+        test( 'should be able to change startTime while running', () => {
+          const newStartTime = 300;
+          const timeRunning = 11;
+          const should = newStartTime;
+          const timeRunningAfterStop = 8;
+          buildTimerTest(this.clock,
+          [
+            {method: 'start',   time: element.startTime}, 
+            {method: 'running', time: timeRunning},
+            {method: 'changeStartTime',   time: newStartTime}, 
+            {method: 'should',  time: should},
+            {method: 'am',      },
+          ]);
+
+        });
+
+        test( 'should be able to restart after stop', () => {
           const timeRunning = 11;
           const timeRunningAfterStop = 8;
           const timeRunningAfterRestart = 9;
@@ -169,7 +288,7 @@
 
         });
 
-        it( 'should be able to reset', function() {
+        test( 'should be able to reset', () => {
           buildTimerTest(this.clock,
           [
             {method: 'start',   time: element.startTime}, 
@@ -181,7 +300,7 @@
 
         });
 
-        it( 'after reset, should inform last current time before reset', function() {
+        test( 'after reset, should inform last current time before reset', () => {
           const timeRunning = 13;
           const should = element.startTime - timeRunning;
           buildTimerTest(this.clock,
@@ -196,7 +315,7 @@
 
         });
 
-        it( 'should be precise after reset', function() {
+        test( 'should be precise after reset', () => {
           const runningTimeAfterReset = 9;
           const should = element.startTime - runningTimeAfterReset;
           buildTimerTest(this.clock,
@@ -211,7 +330,7 @@
           ]);
         });
 
-        it( 'should reset after finished', function() {
+        test( 'should reset after finished', () => {
           const runningTime = 50;
           const should = element.startTime;
           buildTimerTest(this.clock,
@@ -232,8 +351,11 @@
             if (!method) return;
 
             let actions = {
+              changeStartTime:  (t) => {
+                element.startTime = t; //already set at setup
+              },
               start:  (t) => {
-                // element.startTime = t; //already set at beforeEach
+                // element.startTime = t; //already set at setup
               },
               running:  (t) => {
                 element.run = true;
@@ -263,7 +385,7 @@
           let aditionalErrorMessage = buildEnhancedErrorMessage(arMethodsAndTimes);
 
           // console.log(am, should, aditionalErrorMessage)
-          expect( am, aditionalErrorMessage ).to.equal( should );
+          assert.equal( am,  should  , aditionalErrorMessage );
 
           function findAm(methodAndTimeObj) { 
             return methodAndTimeObj.method === 'am';
@@ -286,6 +408,7 @@
               const divider     = `------------------`;
               const sadDivider  = `-------:/---------`;
               let sentences = {
+                changeStartTime:  ({time}) => `${Math.round(time)}   \t| resetting startTime to ${time}s`,
                 start:  ({time}) => `${Math.round(time)}   \t| starting at ${time}s`,
                 refreshRate:({time}) => `  \t| setting a ${time}ms refresh-rate`,
                 running:({time}) => `-${Math.round(time)}  \t| after ${time}s`,
@@ -314,29 +437,29 @@
         
       });
 
-      describe( 'events', function() {
+      suite( 'events', () => {
         let element;
 
-        beforeEach( function() {
+        setup( () => {
           this.clock = sinon.useFakeTimers();
           element = fixture('BasicTestFixture');
           element.startTime = 30;
           element.run = true;
         });
         
-        afterEach( function() {
+        suiteTeardown( () => {
           element.run = false;
           this.clock.restore();
         });      
 
-        it( 'should finish', function(done) {
+        test( 'should finish', (done) => {
           const afterShouldAlert = parseFloat(element.startTime) + 1;
           const timeout = afterShouldAlert * 1000;
           
-          setTimeout(function() {
-            expect( element.finished ).to.equal( true );
-            expect( element.currentTime ).to.equal( element.startTime );
-            // expect( element.lastCurrentTime, `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` ).to.equal( '0' );
+          setTimeout(() => {
+            assert.equal( element.finished ,  true );
+            assert.equal( element.currentTime ,  element.startTime );
+            // assert.equal( element.lastCurrentTime,  '0'  , `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` );
             done();
           }, timeout);
           // this.timeout(timeout); //timeout with an error if done() isn't called within one second
@@ -346,15 +469,15 @@
 
       }); 
       
-      describe.skip( 'real time', function() {
+      suite.skip( 'real time', () => {
         let element;
 
-        afterEach( function() {
+        suiteTeardown( () => {
           element.run = false;
           element = null;
         });
         
-        it( 'should finish (real time test)', function(done) {
+        test( 'should finish (real time test)', (done) => {
           element = fixture('BasicTestFixture');
           element.startTime = '1';
           element.run = true;
@@ -362,15 +485,50 @@
           
           element.addEventListener('finish', function(e) {
             // console.log(element.currentTime, element.lastCurrentTime)
-            expect( element.finished ).to.equal( true );
-            expect( element.currentTime ).to.equal( element.startTime );
-            expect( element.lastCurrentTime, `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` ).to.equal( '0' );
+            assert.equal( element.finished ,  true );
+            assert.equal( element.currentTime ,  element.startTime );
+            assert.equal( element.lastCurrentTime,  '0'  , `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` );
             done();
           });
           this.timeout(afterShouldAlert);
         });
 
-        it( 'should rotate in sync with time', function(done) {
+        test( 'should update startTime if startTime is changed again (real time test)', (done) => {
+          element = fixture('BasicTestFixture');
+          element.startTime = '2';
+          element.startTime = '1';
+          element.run = true;
+          const afterShouldAlert = 1000 * (parseFloat(element.startTime) + 1);
+          
+          element.addEventListener('finish', function(e) {
+            // console.log(element.currentTime, element.lastCurrentTime)
+            assert.equal( element.finished ,  true );
+            assert.equal( element.currentTime ,  element.startTime );
+            assert.equal( element.lastCurrentTime,  '0'  , `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` );
+            done();
+          });
+          this.timeout(afterShouldAlert);
+        });
+
+        test( 'should restart if startTime is changed while running (real time test)', (done) => {
+          element = fixture('BasicTestFixture');
+          element.startTime = '3';
+          element.run = true;
+          element.startTime = '1';
+          element.run = true;
+          const afterShouldAlert = 1000 * (parseFloat(element.startTime) + 3);
+          
+          element.addEventListener('finish', function(e) {
+            // console.log(element.currentTime, element.lastCurrentTime)
+            assert.equal( element.finished ,  true );
+            assert.equal( element.currentTime ,  element.startTime );
+            assert.equal( element.lastCurrentTime,  '0'  , `lastCurrentTime is ${element.lastCurrentTime} but should be 0 after finish event` );
+            done();
+          });
+          this.timeout(afterShouldAlert);
+        });
+
+        test.skip( 'should rotate in sync with time', (done) => {
           element = fixture('WithRotateSlotTestFixture');
           element.startTime = '60';
           const timeDivider = 36;
@@ -392,22 +550,22 @@
         
       });  
       
-      describe.skip( 'slots', function() {
+      suite.skip( 'slots', () => {
         let element;
 
-        beforeEach( function() {
+        setup( () => {
           this.clock = sinon.useFakeTimers();
           element = fixture('WithRotateSlotTestFixture');
           element.startTime = 60;
           element.run = true;
         });
         
-        afterEach( function() {
+        suiteTeardown( () => {
           element.run = false;
           this.clock.restore();
         });      
 
-        it( '[FAKETIMER TEST NOT BUILD YET] should rotate 6 degrees per second (at 60sec start time)', function() {
+        test( '[FAKETIMER TEST NOT BUILD YET] should rotate 6 degrees per second (at 60sec start time)', () => {
           const testTime = element.startTime / 4;
           this.clock.tick(testTime * 1000);
 
@@ -415,7 +573,7 @@
           // http://www.zsoltnagy.eu/fake-timers-with-sinonjs/
           const currentRotation = element._getCurrentRotation();
           console.log(`currentRotation: ${currentRotation}`)
-          expect( `${currentRotation}` ).to.equal( '90' );
+          assert.equal( `${currentRotation}` ,  '90' );
         });
 
       }); 
