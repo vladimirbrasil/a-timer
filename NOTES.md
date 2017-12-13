@@ -18,9 +18,10 @@ On december 3<sup>rd</sup>, 2017.
 
 | Passing       | Not passing   |
 |:------------- |:--------------|
-| Safari      	| Edge 			|
-| Chrome      	| IE      		|
-| Firefox 		|       		|
+| Safari      	| IE       			|
+| Chrome      	|       	    	|
+| Firefox 		  |       		    |
+| Edge 		      |       		    |
 
 [Choose browsers to test on sauce](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/) and add them to  **wct.conf.json**
 

@@ -389,11 +389,7 @@ class ATimer extends HTMLElement {
   }
 
   _cssAnimationEnded(e) {
-    console.log('css animations ended event', e);
-    // console.log(animatedEl.style["-webkit-animation-play-state"]);
-    // this._pauseCssAnimations();
-    // console.log(animatedEl.style["-webkit-animation-play-state"]);
-    // animatedEl.removeEventListener(animationEventName, customFunction);
+    // console.log('css animations ended event', e);
   }
 
   _startCssAnimations() {
@@ -467,16 +463,10 @@ class ATimer extends HTMLElement {
     var slotElement = this.shadowRoot.querySelector(`${querySelector}`);
     // console.log(slotElement);
     if (!slotElement) return;
-    const actualElements = slotElement.assignedNodes({flatten: true});
-    for (var i = 0; i < actualElements.length; i++) {
-      var element = actualElements[i];
-      if (element != null) return element;
-    }
-
-    // const actualElement = slotElement.assignedNodes({flatten: true})
-    //   .find((n) => n != null);
-    // // console.log(actualElement);
-    // return actualElement;
+    const actualElement = slotElement.assignedNodes({flatten: true})
+      .find((n) => n != null);
+    // console.log(actualElement);
+    return actualElement;
   }
 
   _getStyle(elem, cssprop, cssprop2) {
